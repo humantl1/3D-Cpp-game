@@ -10,6 +10,7 @@
 
 // Window dimensions
 const GLint WIDTH = 800, HEIGHT = 600;
+const float toRadians = 3.14159265f / 180.0f;
 
 GLuint VAO, VBO, shader, uniformModel;
 
@@ -17,6 +18,8 @@ bool direction = true; // true for right
 float triOffset = 0.0f;
 float triMaxOffset = 0.7f;
 float triIncrement = 0.005f;
+
+float curAngle = 0.0f;
 
 // Vertex Shader
 static const char* vShader = "												\n\
@@ -126,7 +129,8 @@ void CompileShaders()
 		return;
 	}
 	
-	uniformModel = glGetUniformLocation(shader, "model"); // assigns id to uniformModel	
+	// assigns id to uniformModel. Makes uniformModel essentially an alias for "model"
+	uniformModel = glGetUniformLocation(shader, "model"); 
 }
 int main()
 {
@@ -201,24 +205,40 @@ int main()
 			direction = !direction;
 		}
 
+		curAngle += 0.1f;
+		if (curAngle >= 360)
+		{
+			curAngle -= 360;
+		}
+
 		// Clear window
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-			glUseProgram(shader);
-			
-			glm::mat4 model(1.0f);
-			model = glm::translate(model, glm::vec3(triOffset, 0.0f, 0.0f));
+		glUseProgram(shader); // start using the shader program
+		
+			// Initialize transformation matrix from triOffset. The next three line are just GLM, they aren't openGL. 
+			// The order of transformations is essentialy backwards
+			glm::mat4 model(1.0f); // initialize simple 4x4 identity matrix using GLM
+			model = glm::translate(model, glm::vec3(triOffset, 0.0f, 0.0f)); // glm function builds matrix to translate in direction and magnitude of vector
+			model = glm::rotate(model, curAngle * toRadians, glm::vec3(0.0f, 0.0f, 1.0f)); // (matrix, angle of rotation, axis of rotation). This must concatenate the previous matrix
 
-			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			// pass the model matrix initialized above to shader program
+			glUniformMatrix4fv(uniformModel, // location of matrix in shader
+				1, // number of matrices to pass(?)
+				GL_FALSE, // transpose matrix?
+				glm::value_ptr(model)); // matrix to pass to shader matrix
 
-				glBindVertexArray(VAO);
+			glBindVertexArray(VAO); // start operating on shader vertex array
 
-					glDrawArrays(GL_TRIANGLES, 0, 3 );	
+				// Render triangles
+				glDrawArrays(GL_TRIANGLES, // Mode. The kind of primitive to draw
+					0, // starting index of array
+					3 ); // Number of indices to be rendered
 
-				glBindVertexArray(0);
+			glBindVertexArray(0);
 
-			glUseProgram(0);
+		glUseProgram(0);
 
 		glfwSwapBuffers(mainWindow);
 	}

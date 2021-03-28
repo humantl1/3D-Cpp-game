@@ -14,12 +14,20 @@ const float toRadians = 3.14159265f / 180.0f;
 
 GLuint VAO, VBO, shader, uniformModel;
 
+// movement variables
 bool direction = true; // true for right
 float triOffset = 0.0f;
 float triMaxOffset = 0.7f;
 float triIncrement = 0.005f;
 
+// rotation variables
 float curAngle = 0.0f;
+
+// scaling variables
+bool sizeDirection = true;
+float curSize = 0.4f;
+float maxSize = 0.8f;
+float minSize = 0.1f;
 
 // Vertex Shader
 static const char* vShader = "												\n\
@@ -31,7 +39,7 @@ uniform mat4 model;														    \n\
 																			\n\
 void main()																	\n\
 {																			\n\
-		gl_Position = model * vec4(0.4 * pos.x, 0.4 * pos.y, pos.z, 1.0); 	\n\
+		gl_Position = model * vec4(pos, 1.0); 								\n\
 }";
 
 // Fragment Shader
@@ -53,19 +61,24 @@ void CreateTriangle()
 		0.0f, 1.0f, 0.0f
 	};
 
-	glGenVertexArrays(1, &VAO);
-		glBindVertexArray(VAO);
+	glGenVertexArrays(1, &VAO);				// Generate vertex array object names (number of Vertex Array object names, a pointer to GLuint array where the names are stored)
+	glBindVertexArray(VAO);					// Binds VAO to make it the current context. What is later called to initiate rendering
 
-		glGenBuffers(1, &VBO);
-			glBindBuffer(GL_ARRAY_BUFFER, VBO);
-			glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); // this will be passed to the "in" variable
+		glGenBuffers(1, &VBO);				// Generate buffer object names (number of buffer object names, a pointer to GLuint array where the names are stored)
+		glBindBuffer(GL_ARRAY_BUFFER, VBO); // Bind named buffer object. (Type of data in buffer, buffer object)
+		
+			glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); // Creates and initializes buffer object's "data stord. Passed to the "in" variable
+			glVertexAttribPointer(0,		// GLuint index. This is the location = 0 refered to in the vertex shader
+				3,							// GLint size. Number of components. Must be 1-4
+				GL_FLOAT,					// Glenum type. Type of data of each array componenent
+				GL_FALSE,					// GLboolean normalized. Should the value be normalized or not.
+				0,							// GLsizei stride. The byte offset between consecutive generic vertex attributes. 0 indicates tight packing
+				0);							// const void * pointer. Offset of first component of first generic vertex attribute in the data store off the buffer currently bound
+			glEnableVertexAttribArray(0);	// index to enable. So 0 indicates the array above
 
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-			glEnableVertexAttribArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-		glBindVertexArray(0);
+	glBindVertexArray(0);
 } 
 
 void AddShader(GLuint theProgram, const char* shaderCode, GLenum shaderType)
@@ -178,7 +191,7 @@ int main()
 		glfwTerminate();
 		return 1;
 	}
-
+	
 	// create Viewport
 	glViewport(0, 0, bufferWidth, bufferHeight);
 
@@ -211,6 +224,19 @@ int main()
 			curAngle -= 360;
 		}
 
+		if (sizeDirection)
+		{
+			curSize += 0.001f;
+		}
+		else
+		{
+			curSize -= 0.001f;
+		}
+
+		if (curSize >= maxSize || curSize <= minSize)
+		{
+			sizeDirection = !sizeDirection;
+		}
 		// Clear window
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -222,6 +248,7 @@ int main()
 			glm::mat4 model(1.0f); // initialize simple 4x4 identity matrix using GLM
 			model = glm::translate(model, glm::vec3(triOffset, 0.0f, 0.0f)); // glm function builds matrix to translate in direction and magnitude of vector
 			model = glm::rotate(model, curAngle * toRadians, glm::vec3(0.0f, 0.0f, 1.0f)); // (matrix, angle of rotation, axis of rotation). This must concatenate the previous matrix
+			model = glm::scale(model, glm::vec3(curSize, curSize, 1.0f)); // (matrix, (scale coordinates))
 
 			// pass the model matrix initialized above to shader program
 			glUniformMatrix4fv(uniformModel, // location of matrix in shader

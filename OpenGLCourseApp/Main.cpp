@@ -69,6 +69,10 @@ void CreateTriangle()
 	Mesh *obj1 = new Mesh();
 	obj1->CreateMesh(vertices, indices, 12, 12);
 	meshList.push_back(obj1);
+
+	Mesh *obj2 = new Mesh();
+	obj2->CreateMesh(vertices, indices, 12, 12);
+	meshList.push_back(obj2);
 } 
 
 void AddShader(GLuint theProgram, const char* shaderCode, GLenum shaderType)
@@ -214,7 +218,7 @@ int main()
 			glm::mat4 model(1.0f); // initialize simple 4x4 identity matrix using GLM
 			model = glm::translate(model, glm::vec3(0.0f, 0.0f, -2.5f)); // glm function builds matrix to translate in direction and magnitude of vector
 			//model = glm::rotate(model, curAngle * toRadians, glm::vec3(0.0f, 1.0f, 0.0f)); // (matrix, angle of rotation, axis of rotation). This must concatenate the previous matrix
-			//model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f)); // (matrix, (scale coordinates))
+			model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f)); // (matrix, (scale coordinates))
 
 			// pass the model matrix initialized above to shader program
 			glUniformMatrix4fv(uniformModel, // location of matrix in shader
@@ -223,9 +227,13 @@ int main()
 				glm::value_ptr(model)); // matrix to pass to shader matrix
 
 			glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(projection)); // pass projection matrix to shader program
-
-			
 			meshList[0]->RenderMesh();
+			
+			model = glm::mat4(1.0f);
+			model = glm::translate(model, glm::vec3(0.0f, 1.0f, -2.5f)); // glm function builds matrix to translate in direction and magnitude of vector
+			model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f)); // (matrix, (scale coordinates))
+			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+			meshList[1]->RenderMesh();
 
 		glUseProgram(0);
 

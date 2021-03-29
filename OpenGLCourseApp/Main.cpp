@@ -10,14 +10,14 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "Mesh.h"
+#include "Shader.h"
 
 // Window dimensions
 const GLint WIDTH = 800, HEIGHT = 600;
 const float toRadians = 3.14159265f / 180.0f;
 
 std::vector<Mesh*> meshList;
-
-GLuint shader, uniformModel, uniformProjection;
+std::vector<Shader> shaderList;
 
 // Vertex Shader
 static const char* vShader = "												\n\
@@ -49,7 +49,7 @@ void main()															\n\
 	color = vColor;													\n\
 }";
 
-void CreateTriangle()
+void CreateObjects()
 {
 	// pyramid faces composed of vertex indices
 	unsigned int indices[] = {
@@ -75,71 +75,13 @@ void CreateTriangle()
 	meshList.push_back(obj2);
 } 
 
-void AddShader(GLuint theProgram, const char* shaderCode, GLenum shaderType)
+void CreateShaders()
 {
-	GLuint theShader = glCreateShader(shaderType);
-
-	const GLchar* theCode[1];
-	theCode[0] = shaderCode;
-
-	GLint codeLength[1];
-	codeLength[0] = strlen(shaderCode);
-
-	glShaderSource(theShader, 1, theCode, codeLength);
-	glCompileShader(theShader);
-
-	GLint result = 0;
-	GLchar eLog[1024] = { 0 };
-
-	glGetShaderiv(theShader, GL_COMPILE_STATUS, &result);
-	if (!result)
-	{
-		glGetProgramInfoLog(theShader, sizeof(eLog), NULL, eLog);
-		printf("Error compiling the %d program: '%s'\n", shaderType, eLog);
-		return;
-	}
-
-	glAttachShader(theProgram, theShader);
+	Shader* shader1 = new Shader();
+	shader1->CreateFromString(vShader, fShader);
+	shaderList.push_back(*shader1);
 }
 
-void CompileShaders()
-{
-	shader = glCreateProgram();
-
-	if (!shader)
-	{
-		printf("Error creating shader program!\n");
-		return;
-	}
-
-	AddShader(shader, vShader, GL_VERTEX_SHADER);
-	AddShader(shader, fShader, GL_FRAGMENT_SHADER);
-
-	GLint result = 0;
-	GLchar eLog[1024] = { 0 };
-
-	glLinkProgram(shader);
-	glGetProgramiv(shader, GL_LINK_STATUS, &result);
-	if (!result)
-	{
-		glGetProgramInfoLog(shader, sizeof(eLog), NULL, eLog);
-		printf("Error linking program: '%s'\n", eLog);
-		return;
-	}
-
-	glValidateProgram(shader);
-	glGetProgramiv(shader, GL_VALIDATE_STATUS, &result);
-	if (!result)
-	{
-		glGetProgramInfoLog(shader, sizeof(eLog), NULL, eLog);
-		printf("Error validating  program: '%s'\n", eLog);
-		return;
-	}
-	
-	// assigns id to uniformModel. Makes uniformModel essentially an alias for "model"
-	uniformModel = glGetUniformLocation(shader, "model"); 
-	uniformProjection = glGetUniformLocation(shader, "projection"); 
-}
 int main()
 {
 	// Initialize GLFW
@@ -192,8 +134,10 @@ int main()
 	// create Viewport
 	glViewport(0, 0, bufferWidth, bufferHeight);
 
-	CreateTriangle();
-	CompileShaders();
+	CreateObjects();
+	CreateShaders();
+
+	GLuint uniformProjection = 0, uniformModel = 0;
 
 	glm::mat4 projection = glm::perspective(
 		45.0f, // fov from top to bottom
@@ -211,8 +155,10 @@ int main()
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the color and depth buffers
 
-		glUseProgram(shader); // start using the shader program
-		
+		shaderList[0].UseShader(); // start using the shader program
+		uniformModel = shaderList[0].GetModelLocation();
+		uniformProjection = shaderList[0].GetProjectionLocation();
+
 			// Initialize transformation matrix from triOffset. The next three line are just GLM, they aren't openGL. 
 			// The order of transformations is essentialy backwards
 			glm::mat4 model(1.0f); // initialize simple 4x4 identity matrix using GLM

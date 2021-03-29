@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <cmath>
+#include <vector>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -8,26 +9,15 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "Mesh.h"
+
 // Window dimensions
 const GLint WIDTH = 800, HEIGHT = 600;
 const float toRadians = 3.14159265f / 180.0f;
 
-GLuint VAO, VBO, IBO, shader, uniformModel;
+std::vector<Mesh*> meshList;
 
-// movement variables
-bool direction = true; // true for right
-float triOffset = 0.0f;
-float triMaxOffset = 0.7f;
-float triIncrement = 0.005f;
-
-// rotation variables
-float curAngle = 0.0f;
-
-// scaling variables
-bool sizeDirection = true;
-float curSize = 0.4f;
-float maxSize = 0.8f;
-float minSize = 0.1f;
+GLuint shader, uniformModel, uniformProjection;
 
 // Vertex Shader
 static const char* vShader = "												\n\
@@ -38,10 +28,11 @@ layout (location = 0) in vec3 pos;											\n\
 out vec4 vColor;															\n\
 																			\n\
 uniform mat4 model;														    \n\
+uniform mat4 projection;												    \n\
 																			\n\
 void main()																	\n\
 {																			\n\
-		gl_Position = model * vec4(pos, 1.0); 								\n\
+		gl_Position = projection * model * vec4(pos, 1.0); 					\n\
 		vColor = vec4(clamp(pos, 0.0f, 1.0f), 1.0f);						\n\
 }";
 
@@ -75,29 +66,9 @@ void CreateTriangle()
 		0.0f, 1.0f, 0.0f
 	};
 
-	glGenVertexArrays(1, &VAO);						// Generate vertex array object names (number of Vertex Array object names, a pointer to GLuint array where the names are stored)
-	glBindVertexArray(VAO);							// Binds VAO to make it the current context. What is later called to initiate rendering
-
-		glGenBuffers(1, &IBO);						// Generate index array buffer (number of Index Array objects, a pointer to GLuint Index Array where the names are stored)
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);	// Bind IBO to make it the current context.
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW); // Creates and initializes IBO data store. similar to the buffer data below, but for indices instead of vertices
-
-			glGenBuffers(1, &VBO);					// Generate buffer object names (number of buffer object names, a pointer to GLuint array where the names are stored)
-			glBindBuffer(GL_ARRAY_BUFFER, VBO);		// Bind named buffer object. (Type of data in buffer, buffer object)
-				glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); // Creates and initializes buffer object's "data store". Passed to the "in" variable
-
-				glVertexAttribPointer(0,			// GLuint index. This is the location = 0 refered to in the vertex shader
-					3,								// GLint size. Number of components. Must be 1-4
-					GL_FLOAT,						// Glenum type. Type of data of each array componenent
-					GL_FALSE,						// GLboolean normalized. Should the value be normalized or not.
-					0,								// GLsizei stride. The byte offset between consecutive generic vertex attributes. 0 indicates tight packing
-					0);								// const void * pointer. Offset of first component of first generic vertex attribute in the data store off the buffer currently bound
-				glEnableVertexAttribArray(0);		// index to enable. So 0 indicates the array above
-
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-	glBindVertexArray(0);
+	Mesh *obj1 = new Mesh();
+	obj1->CreateMesh(vertices, indices, 12, 12);
+	meshList.push_back(obj1);
 } 
 
 void AddShader(GLuint theProgram, const char* shaderCode, GLenum shaderType)
@@ -163,6 +134,7 @@ void CompileShaders()
 	
 	// assigns id to uniformModel. Makes uniformModel essentially an alias for "model"
 	uniformModel = glGetUniformLocation(shader, "model"); 
+	uniformProjection = glGetUniformLocation(shader, "projection"); 
 }
 int main()
 {
@@ -211,7 +183,7 @@ int main()
 		return 1;
 	}
 	
-	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_DEPTH_TEST); // this tests the depth of each pixel to see if it should be drawn
 
 	// create Viewport
 	glViewport(0, 0, bufferWidth, bufferHeight);
@@ -219,57 +191,30 @@ int main()
 	CreateTriangle();
 	CompileShaders();
 
+	glm::mat4 projection = glm::perspective(
+		45.0f, // fov from top to bottom
+		(GLfloat)bufferWidth / (GLfloat)bufferHeight, // aspect ratio
+		0.1f, // near z
+		100.0f); // far z
+
 	// Loop until window closed
 	while (!glfwWindowShouldClose(mainWindow))
 	{
 		// Get + handle user input events
 		glfwPollEvents();
 
-		if (direction)
-		{
-			triOffset += triIncrement;
-		}
-		else
-		{
-			triOffset -= triIncrement;
-
-		}
-		if (abs(triOffset) >= triMaxOffset)
-		{
-			direction = !direction;
-		}
-
-		curAngle += 0.1f;
-		if (curAngle >= 360)
-		{
-			curAngle -= 360;
-		}
-
-		if (sizeDirection)
-		{
-			curSize += 0.001f;
-		}
-		else
-		{
-			curSize -= 0.001f;
-		}
-
-		if (curSize >= maxSize || curSize <= minSize)
-		{
-			sizeDirection = !sizeDirection;
-		}
 		// Clear window
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the color and depth buffers
 
 		glUseProgram(shader); // start using the shader program
 		
 			// Initialize transformation matrix from triOffset. The next three line are just GLM, they aren't openGL. 
 			// The order of transformations is essentialy backwards
 			glm::mat4 model(1.0f); // initialize simple 4x4 identity matrix using GLM
-			//model = glm::translate(model, glm::vec3(triOffset, 0.0f, 0.0f)); // glm function builds matrix to translate in direction and magnitude of vector
-			model = glm::rotate(model, curAngle * toRadians, glm::vec3(0.0f, 1.0f, 0.0f)); // (matrix, angle of rotation, axis of rotation). This must concatenate the previous matrix
-			model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f)); // (matrix, (scale coordinates))
+			model = glm::translate(model, glm::vec3(0.0f, 0.0f, -2.5f)); // glm function builds matrix to translate in direction and magnitude of vector
+			//model = glm::rotate(model, curAngle * toRadians, glm::vec3(0.0f, 1.0f, 0.0f)); // (matrix, angle of rotation, axis of rotation). This must concatenate the previous matrix
+			//model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f)); // (matrix, (scale coordinates))
 
 			// pass the model matrix initialized above to shader program
 			glUniformMatrix4fv(uniformModel, // location of matrix in shader
@@ -277,15 +222,10 @@ int main()
 				GL_FALSE, // transpose matrix?
 				glm::value_ptr(model)); // matrix to pass to shader matrix
 
-			glBindVertexArray(VAO); // start operating on shader vertex array
+			glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(projection)); // pass projection matrix to shader program
 
-				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
-
-					glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
-
-				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	
-			glBindVertexArray(0);
+			
+			meshList[0]->RenderMesh();
 
 		glUseProgram(0);
 

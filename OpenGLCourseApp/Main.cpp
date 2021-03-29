@@ -19,35 +19,8 @@ const float toRadians = 3.14159265f / 180.0f;
 std::vector<Mesh*> meshList;
 std::vector<Shader> shaderList;
 
-// Vertex Shader
-static const char* vShader = "												\n\
-#version 330																\n\
-																			\n\
-layout (location = 0) in vec3 pos;											\n\
-																			\n\
-out vec4 vColor;															\n\
-																			\n\
-uniform mat4 model;														    \n\
-uniform mat4 projection;												    \n\
-																			\n\
-void main()																	\n\
-{																			\n\
-		gl_Position = projection * model * vec4(pos, 1.0); 					\n\
-		vColor = vec4(clamp(pos, 0.0f, 1.0f), 1.0f);						\n\
-}";
-
-// Fragment Shader
-static const char* fShader = "										\n\
-#version 330														\n\
-																	\n\
-in vec4 vColor;														\n\
-																	\n\
-out vec4 color;														\n\
-																	\n\
-void main()															\n\
-{																	\n\
-	color = vColor;													\n\
-}";
+static const char* vShader = "Shaders/shader.vert";
+static const char* fShader = "Shaders/shader.frag";
 
 void CreateObjects()
 {
@@ -78,7 +51,7 @@ void CreateObjects()
 void CreateShaders()
 {
 	Shader* shader1 = new Shader();
-	shader1->CreateFromString(vShader, fShader);
+	shader1->CreateFromFiles(vShader, fShader);
 	shaderList.push_back(*shader1);
 }
 

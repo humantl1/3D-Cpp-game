@@ -9,12 +9,13 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "Window.h"
 #include "Mesh.h"
 #include "Shader.h"
 
-// Window dimensions
-const GLint WIDTH = 800, HEIGHT = 600;
 const float toRadians = 3.14159265f / 180.0f;
+
+Window mainWindow;
 
 std::vector<Mesh*> meshList;
 std::vector<Shader> shaderList;
@@ -57,56 +58,8 @@ void CreateShaders()
 
 int main()
 {
-	// Initialize GLFW
-	if (!glfwInit())
-	{
-		printf("GLFW Initialization failed!");
-		glfwTerminate();
-		return 1;
-	}
-
-	// Setup GLFW window properties
-	// OpenGL version (3.3)
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	// Core profile = No Backwards Compatibility
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	// Allow forward compatibility
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-
-	//Create GLFW window
-	GLFWwindow* mainWindow = glfwCreateWindow(WIDTH, HEIGHT, "Test Window", NULL, NULL);
-	if (!mainWindow)
-	{
-		printf("GLFW window creation failed!");
-		glfwTerminate();
-		return 1;
-	}
-
-	// Get Buffer size information
-	int bufferWidth, bufferHeight;
-	glfwGetFramebufferSize(mainWindow, &bufferWidth, &bufferHeight);
-
-	// Set context for GLEW to use
-	glfwMakeContextCurrent(mainWindow);
-
-	// Allow modern extension features
-	glewExperimental = GL_TRUE;
-
-	// glewInit returns an enum GLEW_OK if initialized
-	if (glewInit() != GLEW_OK)
-	{
-		printf("GLEW initialization failed!");
-		glfwDestroyWindow(mainWindow);
-		glfwTerminate();
-		return 1;
-	}
-	
-	glEnable(GL_DEPTH_TEST); // this tests the depth of each pixel to see if it should be drawn
-
-	// create Viewport
-	glViewport(0, 0, bufferWidth, bufferHeight);
-
+	mainWindow = Window(800, 600);
+	mainWindow.initialize();
 	CreateObjects();
 	CreateShaders();
 
@@ -114,12 +67,12 @@ int main()
 
 	glm::mat4 projection = glm::perspective(
 		45.0f, // fov from top to bottom
-		(GLfloat)bufferWidth / (GLfloat)bufferHeight, // aspect ratio
+		mainWindow.getBufferWidth() / (GLfloat)mainWindow.getBufferHeight(), // aspect ratio
 		0.1f, // near z
 		100.0f); // far z
 
 	// Loop until window closed
-	while (!glfwWindowShouldClose(mainWindow))
+	while (!mainWindow.getShouldClose())
 	{
 		// Get + handle user input events
 		glfwPollEvents();
@@ -156,7 +109,7 @@ int main()
 
 		glUseProgram(0);
 
-		glfwSwapBuffers(mainWindow);
+		mainWindow.swapBuffer();
 	}
 
 	return 0;

@@ -27,5 +27,11 @@ private:
 
 	GLint width, height;
 	GLint bufferWidth, bufferHeight;
+
+	bool keys[1024]; // covers range of asci characters
+
+	void createCallbacks();
+	// This is static because GLFW callback does not work with regular member functions of the same class
+	static void handleKeys(GLFWwindow* window, int key, int code, int action, int mode);
 };
 

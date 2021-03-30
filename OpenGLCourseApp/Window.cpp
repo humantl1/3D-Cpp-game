@@ -4,12 +4,22 @@ Window::Window()
 {
 	width = 800;
 	height = 600;
+
+	for (size_t i = 0; i < 1024; i++)
+	{
+		keys[i] = 0;
+	}
 }
 
 Window::Window(GLint windowWidth, GLint windowHeight)
 {
 	width = windowWidth;
 	height = windowHeight;
+
+	for (size_t i = 0; i < 1024; i++)
+	{
+		keys[i] = 0;
+	}
 }
 
 int Window::initialize()
@@ -46,6 +56,9 @@ int Window::initialize()
 	// Set context for GLEW to use
 	glfwMakeContextCurrent(mainWindow);
 
+	// Handle Key + Mouse Input
+	createCallbacks();
+
 	// Allow modern extension features
 	glewExperimental = GL_TRUE;
 
@@ -63,6 +76,39 @@ int Window::initialize()
 	// create Viewport
 	glViewport(0, 0, bufferWidth, bufferHeight);
 
+	// this allows glfw callbacks to return to this specific instance of the class, even though handleKeys is a static function
+	glfwSetWindowUserPointer(mainWindow, this);
+}
+
+void Window::createCallbacks()
+{
+	glfwSetKeyCallback(mainWindow, handleKeys);
+}
+
+void Window::handleKeys(GLFWwindow* window, int key, int code, int action, int mode)
+{
+	// this passes in window from the parameters, gets the pointer to that specific instance set at the end of initialize
+	// and passes it to theWindow, which is now a pointer to the specific instance of window
+	Window* theWindow = static_cast<Window*>(glfwGetWindowUserPointer(window));
+
+	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+	{
+		glfwSetWindowShouldClose(window, GL_TRUE);
+	}
+
+	if (key >= 0 && key < 1024)
+	{
+		if (action == GLFW_PRESS)
+		{
+			theWindow->keys[key] == true;
+			printf("Pressed: %d\n", key);
+		}
+		else if (action == GLFW_RELEASE)
+		{
+			theWindow->keys[key] = false;
+			printf("Released: %d\n", key);
+		}
+	}
 }
 
 Window::~Window()

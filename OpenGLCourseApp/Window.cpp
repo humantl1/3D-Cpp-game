@@ -4,6 +4,8 @@ Window::Window()
 {
 	width = 800;
 	height = 600;
+	xChange = 0.0f;
+	yChange - 0.0f;
 
 	for (size_t i = 0; i < 1024; i++)
 	{
@@ -15,7 +17,9 @@ Window::Window(GLint windowWidth, GLint windowHeight)
 {
 	width = windowWidth;
 	height = windowHeight;
-
+	xChange = 0.0f;
+	yChange - 0.0f;
+	
 	for (size_t i = 0; i < 1024; i++)
 	{
 		keys[i] = 0;
@@ -58,6 +62,7 @@ int Window::initialize()
 
 	// Handle Key + Mouse Input
 	createCallbacks();
+	glfwSetInputMode(mainWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	// Allow modern extension features
 	glewExperimental = GL_TRUE;
@@ -83,6 +88,21 @@ int Window::initialize()
 void Window::createCallbacks()
 {
 	glfwSetKeyCallback(mainWindow, handleKeys);
+	glfwSetCursorPosCallback(mainWindow, handleMouse);
+}
+
+GLfloat Window::getXChange() // these are simplifications. see vid 3.19 for explanation of better method
+{
+	GLfloat theChange = xChange;
+	xChange = 0.0f;
+	return theChange;
+}
+
+GLfloat Window::getYChange()
+{
+	GLfloat theChange = yChange;
+	yChange = 0.0f;
+	return theChange;
 }
 
 void Window::handleKeys(GLFWwindow* window, int key, int code, int action, int mode)
@@ -109,6 +129,28 @@ void Window::handleKeys(GLFWwindow* window, int key, int code, int action, int m
 			printf("Released: %d\n", key);
 		}
 	}
+}
+
+void Window::handleMouse(GLFWwindow* window, double xPos, double yPos)
+{
+	Window* theWindow = static_cast<Window*>(glfwGetWindowUserPointer(window));
+
+	// handle window initialization. Don't move mouse. Set stored coordinates to whatever current pos is.
+	if (theWindow->mouseFirstMoved)
+	{
+		theWindow->lastX = xPos;
+		theWindow->lastY = yPos;
+		theWindow->mouseFirstMoved = false;
+	}
+
+	theWindow->xChange = xPos - theWindow->lastX;
+	theWindow->yChange = theWindow->lastY - yPos; // this order avoids inverted controls
+
+	// update the stored coordinates to the current coordinates
+	theWindow->lastX = xPos;
+	theWindow->lastY = yPos;
+
+	// printf("x:%.6f, y:%.6f\n", theWindow->xChange, theWindow->yChange);
 }
 
 Window::~Window()

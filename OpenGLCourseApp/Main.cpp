@@ -16,6 +16,7 @@
 #include "Shader.h"
 #include "Camera.h"
 #include "Texture.h"
+#include "Light.h"
 
 const float toRadians = 3.14159265f / 180.0f;
 
@@ -24,6 +25,8 @@ Camera camera;
 
 Texture rockTexture;
 Texture asteroidTexture;
+
+Light mainLight;
 
 GLfloat deltaTime = 0.0f;
 GLfloat lastTime = 0.0f;
@@ -82,7 +85,9 @@ int main()
 	asteroidTexture = Texture((char*)"Textures/asteroid.png");
 	asteroidTexture.LoadTexture();
 
-	GLuint uniformProjection = 0, uniformModel = 0, uniformView = 0;
+	mainLight = Light(1.0f, 1.0f, 1.0f, 1.0f);
+
+	GLuint uniformProjection = 0, uniformModel = 0, uniformView = 0, uniformAmbientIntensity = 0, uniformAmbientColor = 0;
 
 	glm::mat4 projection = glm::perspective(
 		glm::radians(45.0f), // fov from top to bottom
@@ -111,6 +116,10 @@ int main()
 		uniformModel = shaderList[0].GetModelLocation();
 		uniformProjection = shaderList[0].GetProjectionLocation();
 		uniformView = shaderList[0].GetViewLocation();
+		uniformAmbientColor = shaderList[0].GetAmbientColorLocation();
+		uniformAmbientIntensity = shaderList[0].GetAmbientIntensityLocation();
+
+		mainLight.UseLight(uniformAmbientIntensity, uniformAmbientColor);
 
 			// Initialize transformation matrix from triOffset. The next three line are just GLM, they aren't openGL. 
 			// The order of transformations is essentialy backwards

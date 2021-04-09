@@ -22,8 +22,8 @@ const float toRadians = 3.14159265f / 180.0f;
 Window mainWindow;
 Camera camera;
 
-Texture dirtTexture;
-Texture brickTexture;
+Texture rockTexture;
+Texture asteroidTexture;
 
 GLfloat deltaTime = 0.0f;
 GLfloat lastTime = 0.0f;
@@ -77,10 +77,10 @@ int main()
 
 	camera = Camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f, 5.00f, 0.2f);
 
- 	dirtTexture = Texture((char*)"Textures/dirt.png");
-	dirtTexture.LoadTexture();
-	brickTexture = Texture((char*)"Textures/brick.png");
-	brickTexture.LoadTexture();
+ 	rockTexture = Texture((char*)"Textures/rock.png");
+	rockTexture.LoadTexture();
+	asteroidTexture = Texture((char*)"Textures/asteroid.png");
+	asteroidTexture.LoadTexture();
 
 	GLuint uniformProjection = 0, uniformModel = 0, uniformView = 0;
 
@@ -127,14 +127,14 @@ int main()
 
 			glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(projection)); // pass projection matrix to shader program
 			glUniformMatrix4fv(uniformView, 1, GL_FALSE, glm::value_ptr(camera.calculateViewMatrix())); // pass camera matrix to shader program
-			dirtTexture.UseTexture();
+			rockTexture.UseTexture();
 			meshList[0]->RenderMesh();
 			
 			model = glm::mat4(1.0f);
 			model = glm::translate(model, glm::vec3(0.0f, 1.0f, -2.5f)); // glm function builds matrix to translate in direction and magnitude of vector
 			model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f)); // (matrix, (scale coordinates))
 			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-			brickTexture.UseTexture();
+			asteroidTexture.UseTexture();
 			meshList[1]->RenderMesh();
 
 		glUseProgram(0);

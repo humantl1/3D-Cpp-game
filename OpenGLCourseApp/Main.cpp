@@ -17,6 +17,7 @@
 #include "Camera.h"
 #include "Texture.h"
 #include "Light.h"
+#include "Material.h"
 
 const float toRadians = 3.14159265f / 180.0f;
 
@@ -25,6 +26,9 @@ Camera camera;
 
 Texture rockTexture;
 Texture asteroidTexture;
+
+Material shinyMaterial;
+Material dullMaterial;
 
 Light mainLight;
 
@@ -87,9 +91,9 @@ void CreateObjects()
 
 	GLfloat vertices[] = {
 		// x     y     z		 u     v		     normals
-		-1.0f, -1.0f, 0.0f,		0.0f, 0.0f,		0.0f, 0.0f, 0.0f, // bottom left
+		-1.0f, -1.0f, -0.6f,		0.0f, 0.0f,		0.0f, 0.0f, 0.0f, // bottom left
 		0.0f, -1.0f, 1.0f,		0.5f, 0.0f,		0.0f, 0.0f, 0.0f, // "back"
-		1.0f, -1.0f, 0.0f,		1.0f, 0.0f,		0.0f, 0.0f, 0.0f, // bottom right
+		1.0f, -1.0f, -0.6f,		1.0f, 0.0f,		0.0f, 0.0f, 0.0f, // bottom right
 		0.0f, 1.0f, 0.0f,		0.5f, 1.0f,		0.0f, 0.0f, 0.0f // top 
 	};
 
@@ -113,7 +117,7 @@ void CreateShaders()
 
 int main()
 {
-	mainWindow = Window(800, 600);
+	mainWindow = Window(1366, 768);
 	mainWindow.initialize();
 	CreateObjects();
 	CreateShaders();
@@ -125,11 +129,15 @@ int main()
 	asteroidTexture = Texture((char*)"Textures/asteroid.png");
 	asteroidTexture.LoadTexture();
 
-	mainLight = Light(1.0f, 1.0f, 1.0f, 0.2f,	// ambient values 
-		2.0f, -1.0f, -2.0f, 1.0f);				// diffuse values
+	shinyMaterial = Material(1.0f, 32);
+	dullMaterial = Material(0.3f, 4);
 
-	GLuint uniformProjection = 0, uniformModel = 0, uniformView = 0, 
-		uniformAmbientIntensity = 0, uniformAmbientColor = 0, uniformDirection = 0, uniformDiffuseIntensity = 0;
+	mainLight = Light(1.0f, 1.0f, 1.0f, 0.2f,	// ambient values 
+		2.0f, -1.0f, -2.0f, 0.2f);				// diffuse values
+
+	GLuint uniformProjection = 0, uniformModel = 0, uniformView = 0, uniformEyePosition = 0, 
+		uniformAmbientIntensity = 0, uniformAmbientColor = 0, uniformDirection = 0, uniformDiffuseIntensity = 0,
+		uniformSpecularIntensity = 0, uniformShininess = 0;
 
 	glm::mat4 projection = glm::perspective(
 		glm::radians(45.0f), // fov from top to bottom
@@ -162,33 +170,40 @@ int main()
 		uniformAmbientIntensity = shaderList[0].GetAmbientIntensityLocation();
 		uniformDirection = shaderList[0].GetDirectionLocation();
 		uniformDiffuseIntensity = shaderList[0].GetDiffuseIntensityLocation();
+		uniformEyePosition = shaderList[0].GetEyePositionLocation();
+		uniformSpecularIntensity = shaderList[0].GetSpecularIntensityLocation();
+		uniformShininess = shaderList[0].GetShininessLocation();
 
 		mainLight.UseLight(uniformAmbientIntensity, uniformAmbientColor, uniformDiffuseIntensity, uniformDirection);
 
-			// Initialize transformation matrix from triOffset. The next three line are just GLM, they aren't openGL. 
-			// The order of transformations is essentialy backwards
-			glm::mat4 model(1.0f); // initialize simple 4x4 identity matrix using GLM
-			model = glm::translate(model, glm::vec3(0.0f, 0.0f, -2.5f)); // glm function builds matrix to translate in direction and magnitude of vector
-			//model = glm::rotate(model, curAngle * toRadians, glm::vec3(0.0f, 1.0f, 0.0f)); // (matrix, angle of rotation, axis of rotation). This must concatenate the previous matrix
-			model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f)); // (matrix, (scale coordinates))
+		glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(projection)); // pass projection matrix to shader program
+		glUniformMatrix4fv(uniformView, 1, GL_FALSE, glm::value_ptr(camera.calculateViewMatrix())); // pass camera matrix to shader program
+		glUniform3f(uniformEyePosition, camera.getCameraPosition().x, camera.getCameraPosition().y, camera.getCameraPosition().z);
 
-			// pass the model matrix initialized above to shader program
-			glUniformMatrix4fv(uniformModel, // location of matrix in shader
-				1, // number of matrices to pass(?)
-				GL_FALSE, // transpose matrix?
-				glm::value_ptr(model)); // matrix to pass to shader matrix
+		// Initialize transformation matrix from triOffset. The next three line are just GLM, they aren't openGL. 
+		// The order of transformations is essentialy backwards
+		glm::mat4 model(1.0f); // initialize simple 4x4 identity matrix using GLM
+		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -2.5f)); // glm function builds matrix to translate in direction and magnitude of vector
+		//model = glm::rotate(model, curAngle * toRadians, glm::vec3(0.0f, 1.0f, 0.0f)); // (matrix, angle of rotation, axis of rotation). This must concatenate the previous matrix
+		//model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f)); // (matrix, (scale coordinates))
 
-			glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(projection)); // pass projection matrix to shader program
-			glUniformMatrix4fv(uniformView, 1, GL_FALSE, glm::value_ptr(camera.calculateViewMatrix())); // pass camera matrix to shader program
-			rockTexture.UseTexture();
-			meshList[0]->RenderMesh();
-			
-			model = glm::mat4(1.0f);
-			model = glm::translate(model, glm::vec3(0.0f, 1.0f, -2.5f)); // glm function builds matrix to translate in direction and magnitude of vector
-			model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f)); // (matrix, (scale coordinates))
-			glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-			asteroidTexture.UseTexture();
-			meshList[1]->RenderMesh();
+		// pass the model matrix initialized above to shader program
+		glUniformMatrix4fv(uniformModel, // location of matrix in shader
+			1, // number of matrices to pass(?)
+			GL_FALSE, // transpose matrix?
+			glm::value_ptr(model)); // matrix to pass to shader matrix
+
+		rockTexture.UseTexture();
+		shinyMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
+		meshList[0]->RenderMesh();
+		
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0.0f, 3.0f, -2.5f)); // glm function builds matrix to translate in direction and magnitude of vector
+		//model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f)); // (matrix, (scale coordinates))
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		asteroidTexture.UseTexture();
+		dullMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
+		meshList[1]->RenderMesh();
 
 		glUseProgram(0);
 

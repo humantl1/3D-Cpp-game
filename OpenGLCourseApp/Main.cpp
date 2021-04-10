@@ -37,6 +37,44 @@ std::vector<Shader> shaderList;
 static const char* vShader = "Shaders/shader.vert";
 static const char* fShader = "Shaders/shader.frag";
 
+void calcAverageNormals(unsigned int* indices, // array of indices	
+	unsigned int indiceCount,	// size of indices array
+    GLfloat* vertices,		// array of vertices
+	unsigned int verticeCount,	// size of vertices array
+	unsigned int vLength,		// number of columns in vertices array
+	unsigned int normalOffset)	// offset from start of vertices array row to first normal index for that row
+{
+	// iterates through each face, averaging the normals
+	for (size_t i = 0; i < indiceCount; i += 3) // i is equivalent to the current face (aka triangle)
+	{
+		// assigns starting index of vertices array row corresponding to the vertex of the current triangle
+		unsigned int in0 = indices[i] * vLength;
+		unsigned int in1 = indices[i + 1] * vLength;
+		unsigned int in2 = indices[i + 2] * vLength;
+
+		// calculate two vectors from vertices of the current face, calculate surface normal from cross product of vectors, normalize surface normal
+		glm::vec3 v1(vertices[in1] - vertices[in0], vertices[in1 + 1] - vertices[in0 + 1], vertices[in1 + 2] - vertices[in0 + 2]);
+		glm::vec3 v2(vertices[in2] - vertices[in0], vertices[in2 + 1] - vertices[in0 + 1], vertices[in2 + 2] - vertices[in0 + 2]);
+		glm::vec3 normal = glm::cross(v1, v2);
+		normal = glm::normalize(normal);
+
+		// in_ are now aliases for starting index of normal vals for the current face
+		in0 += normalOffset; in1 += normalOffset; in2 += normalOffset;
+		// add calculated normalized surface normal to corresponding vertex normal in vertices array
+		vertices[in0] += normal.x; vertices[in0 + 1] += normal.y; vertices[in0 + 2] += normal.z;
+		vertices[in1] += normal.x; vertices[in1 + 1] += normal.y; vertices[in1 + 2] += normal.z;
+		vertices[in2] += normal.x; vertices[in2 + 1] += normal.y; vertices[in2 + 2] += normal.z;
+	}
+
+	for (size_t i = 0; i < verticeCount / vLength; i++) // for each row of vertices[]
+	{
+		unsigned int nOffset = i * vLength + normalOffset;										 // set index for start of normal indices for the ith row
+		glm::vec3 vec(vertices[nOffset], vertices[nOffset + 1], vertices[nOffset + 2]);			 // initialize new vector from normal values from ith row
+		vec = glm::normalize(vec);																 // normalize this new vector
+		vertices[nOffset] = vec.x; vertices[nOffset + 1] = vec.y; vertices[nOffset + 2] = vec.z; // reinput normalized values into vertices[] normal values
+	}
+}
+
 void CreateObjects()
 {
 	// pyramid faces composed of vertex indices
@@ -44,23 +82,25 @@ void CreateObjects()
 		0, 3, 1,
 		1, 3, 2,
 		2, 3, 0,
-		0, 1, 3
+		0, 1, 2
 	};
 
 	GLfloat vertices[] = {
-		// x     y     z		 u     v
-		-1.0f, -1.0f, 0.0f,		0.0f, 0.0f,		// bottom left
-		0.0f, -1.0f, 1.0f,		0.5f, 0.0f,		// "back"
-		1.0f, -1.0f, 0.0f,		1.0f, 0.0f,		// bottom right
-		0.0f, 1.0f, 0.0f,		0.5f, 1.0f		// top 
+		// x     y     z		 u     v		     normals
+		-1.0f, -1.0f, 0.0f,		0.0f, 0.0f,		0.0f, 0.0f, 0.0f, // bottom left
+		0.0f, -1.0f, 1.0f,		0.5f, 0.0f,		0.0f, 0.0f, 0.0f, // "back"
+		1.0f, -1.0f, 0.0f,		1.0f, 0.0f,		0.0f, 0.0f, 0.0f, // bottom right
+		0.0f, 1.0f, 0.0f,		0.5f, 1.0f,		0.0f, 0.0f, 0.0f // top 
 	};
 
+	calcAverageNormals(indices, 12, vertices, 32, 8, 5);
+
 	Mesh *obj1 = new Mesh();
-	obj1->CreateMesh(vertices, indices, 20, 12);
+	obj1->CreateMesh(vertices, indices, 32, 12);
 	meshList.push_back(obj1);
 
 	Mesh *obj2 = new Mesh();
-	obj2->CreateMesh(vertices, indices, 20, 12);
+	obj2->CreateMesh(vertices, indices, 32, 12);
 	meshList.push_back(obj2);
 } 
 
@@ -85,9 +125,11 @@ int main()
 	asteroidTexture = Texture((char*)"Textures/asteroid.png");
 	asteroidTexture.LoadTexture();
 
-	mainLight = Light(1.0f, 1.0f, 1.0f, 1.0f);
+	mainLight = Light(1.0f, 1.0f, 1.0f, 0.2f,	// ambient values 
+		2.0f, -1.0f, -2.0f, 1.0f);				// diffuse values
 
-	GLuint uniformProjection = 0, uniformModel = 0, uniformView = 0, uniformAmbientIntensity = 0, uniformAmbientColor = 0;
+	GLuint uniformProjection = 0, uniformModel = 0, uniformView = 0, 
+		uniformAmbientIntensity = 0, uniformAmbientColor = 0, uniformDirection = 0, uniformDiffuseIntensity = 0;
 
 	glm::mat4 projection = glm::perspective(
 		glm::radians(45.0f), // fov from top to bottom
@@ -118,8 +160,10 @@ int main()
 		uniformView = shaderList[0].GetViewLocation();
 		uniformAmbientColor = shaderList[0].GetAmbientColorLocation();
 		uniformAmbientIntensity = shaderList[0].GetAmbientIntensityLocation();
+		uniformDirection = shaderList[0].GetDirectionLocation();
+		uniformDiffuseIntensity = shaderList[0].GetDiffuseIntensityLocation();
 
-		mainLight.UseLight(uniformAmbientIntensity, uniformAmbientColor);
+		mainLight.UseLight(uniformAmbientIntensity, uniformAmbientColor, uniformDiffuseIntensity, uniformDirection);
 
 			// Initialize transformation matrix from triOffset. The next three line are just GLM, they aren't openGL. 
 			// The order of transformations is essentialy backwards

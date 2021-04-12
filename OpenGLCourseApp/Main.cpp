@@ -11,12 +11,15 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "CommonValues.h"
+
 #include "Window.h"
 #include "Mesh.h"
 #include "Shader.h"
 #include "Camera.h"
 #include "Texture.h"
 #include "DirectionalLight.h"
+#include "PointLight.h"
 #include "Material.h"
 
 const float toRadians = 3.14159265f / 180.0f;
@@ -31,6 +34,7 @@ Material shinyMaterial;
 Material dullMaterial;
 
 DirectionalLight mainLight;
+PointLight pointLights[MAX_POINT_LIGHTS];
 
 GLfloat deltaTime = 0.0f;
 GLfloat lastTime = 0.0f;
@@ -136,8 +140,14 @@ int main()
 								0.1f, 0.3f,			// ambient & diffuse intensities 
 								0.0f, 0.0f, -1.0f);	// diffuse values
 
+	unsigned int pointLightCount = 0;
+	pointLights[0] = PointLight(0.0f, 1.0f, 0.0f,
+								0.1f, 1.0f,
+								-4.0f, 0.0f, 0.0f,
+								0.3f, 0.2f, 0.1f);
+	pointLightCount++;
+
 	GLuint uniformProjection = 0, uniformModel = 0, uniformView = 0, uniformEyePosition = 0, 
-		uniformAmbientIntensity = 0, uniformAmbientColor = 0, uniformDirection = 0, uniformDiffuseIntensity = 0,
 		uniformSpecularIntensity = 0, uniformShininess = 0;
 
 	glm::mat4 projection = glm::perspective(
@@ -149,13 +159,13 @@ int main()
 	// Loop until window closed
 	while (!mainWindow.getShouldClose())
 	{
+		// Delta Time
 		GLfloat now = glfwGetTime(); // returns time in seconds
 		deltaTime = now - lastTime;
 		lastTime = now;
 
 		// Get + handle user input events
 		glfwPollEvents();
-
 		camera.keyControl(mainWindow.getKeys(), deltaTime);
 		camera.mouseControl(mainWindow.getXChange(), mainWindow.getYChange());
 
@@ -163,19 +173,17 @@ int main()
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the color and depth buffers
 
+		// 
 		shaderList[0].UseShader(); // start using the shader program
 		uniformModel = shaderList[0].GetModelLocation();
 		uniformProjection = shaderList[0].GetProjectionLocation();
 		uniformView = shaderList[0].GetViewLocation();
-		uniformAmbientColor = shaderList[0].GetAmbientColorLocation();
-		uniformAmbientIntensity = shaderList[0].GetAmbientIntensityLocation();
-		uniformDirection = shaderList[0].GetDirectionLocation();
-		uniformDiffuseIntensity = shaderList[0].GetDiffuseIntensityLocation();
 		uniformEyePosition = shaderList[0].GetEyePositionLocation();
 		uniformSpecularIntensity = shaderList[0].GetSpecularIntensityLocation();
 		uniformShininess = shaderList[0].GetShininessLocation();
 
-		mainLight.UseLight(uniformAmbientIntensity, uniformAmbientColor, uniformDiffuseIntensity, uniformDirection);
+		shaderList[0].SetDirectionalLight(mainLight);
+		shaderList[0].SetPointLights(pointLights, pointLightCount);
 
 		glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(projection)); // pass projection matrix to shader program
 		glUniformMatrix4fv(uniformView, 1, GL_FALSE, glm::value_ptr(camera.calculateViewMatrix())); // pass camera matrix to shader program

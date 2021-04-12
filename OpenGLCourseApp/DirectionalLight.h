@@ -7,9 +7,9 @@ class DirectionalLight :
 public:
 	DirectionalLight();
 
-	DirectionalLight(GLfloat red, GLfloat green, GLfloat blue, // could also pass in vec with values. 
-		GLfloat aIntensity, GLfloat dIntensity, 
-		GLfloat xDir, GLfloat yDir, GLfloat zDir); // these handle diffuse lighting
+	DirectionalLight(GLfloat red, GLfloat green, GLfloat blue,
+		GLfloat aIntensity, GLfloat dIntensity,		// Ambient and diffuse intensity of light
+		GLfloat xDir, GLfloat yDir, GLfloat zDir);	// Direction light is shining
 
 	void UseLight(GLuint ambientIntensityLocation, GLuint ambientColorLocation,
 		GLuint diffuseIntensityLocation, GLuint directionLocation);

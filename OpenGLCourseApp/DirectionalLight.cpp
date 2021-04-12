@@ -13,6 +13,7 @@ DirectionalLight::DirectionalLight(GLfloat red, GLfloat green, GLfloat blue, // 
 	direction = glm::vec3(xDir, yDir, zDir);
 }
 
+// Set uniform variables related to directional light. Called from Shader.SetDirectionalLight
 void DirectionalLight::UseLight(GLuint ambientIntensityLocation, GLuint ambientColorLocation,
 		GLuint diffuseIntensityLocation, GLuint directionLocation)
 {

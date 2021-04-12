@@ -7,7 +7,8 @@ class Light
 {
 public:
 	Light();
-	Light(GLfloat red, GLfloat green, GLfloat blue, GLfloat aIntensity, GLfloat dIntensity);  // could also pass in vec with values. These are bound to a shader uniform 
+	Light(GLfloat red, GLfloat green, GLfloat blue, // could also pass in vec with values.
+		GLfloat aIntensity, GLfloat dIntensity);	// These are bound to a shader uniform 
 
 	~Light();
 

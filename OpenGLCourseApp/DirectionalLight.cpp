@@ -1,14 +1,12 @@
 #include "DirectionalLight.h"
 
-DirectionalLight::DirectionalLight() : Light()
-{
-	direction = glm::vec3(0.0f, -1.0f, 0.0f);
-}
+DirectionalLight::DirectionalLight() : Light(), 
+										direction {glm::vec3(0.0f, -1.0f, 0.0f)} { }
 
-DirectionalLight::DirectionalLight(GLfloat red, GLfloat green, GLfloat blue, // could also pass in vec with values. 
-									GLfloat aIntensity, GLfloat dIntensity, 
-									GLfloat xDir, GLfloat yDir, GLfloat zDir) : 
-									Light(red, green, blue, aIntensity, dIntensity)
+DirectionalLight::DirectionalLight(GLfloat red, GLfloat green, GLfloat blue,				// Inherit colors from Light class
+									GLfloat aIntensity, GLfloat dIntensity,					// Inherit intensities from Light class
+									GLfloat xDir, GLfloat yDir, GLfloat zDir) :				// Direction light is shining. Unique to DirectionalLight
+										Light(red, green, blue, aIntensity, dIntensity)	    // Only directional component is different then base Light
 {
 	direction = glm::vec3(xDir, yDir, zDir);
 }

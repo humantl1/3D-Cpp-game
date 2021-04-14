@@ -20,6 +20,7 @@
 #include "Texture.h"
 #include "DirectionalLight.h"
 #include "PointLight.h"
+#include "SpotLight.h"
 #include "Material.h"
 
 const float toRadians = 3.14159265f / 180.0f;
@@ -35,6 +36,7 @@ Material dullMaterial;
 
 DirectionalLight mainLight;
 PointLight pointLights[MAX_POINT_LIGHTS];
+SpotLight spotLights[MAX_SPOT_LIGHTS];
 
 GLfloat deltaTime = 0.0f;
 GLfloat lastTime = 0.0f;
@@ -163,28 +165,44 @@ int main()
 
 
 	// Set Materials
-	shinyMaterial = Material(1.0f, 32);
+	shinyMaterial = Material(1.0f, 256);
 	dullMaterial = Material(0.3f, 4);
 
 
 	// Set Lighting
 	mainLight = DirectionalLight(1.0f, 1.0f, 1.0f,	// colors
-								0.1f, 0.3f,			// ambient & diffuse intensities 
-								0.0f, 0.0f, -1.0f);	// diffuse values
+								0.1f, 0.1f,			// ambient & diffuse intensities 
+								0.0f, 0.0f, -1.0f);	// direction light is shining
 
 	unsigned int pointLightCount = 0;
 	pointLights[0] = PointLight(0.0f, 0.0f, 1.0f,
-								0.1f, 0.4f,
-								4.0f, 0.0f, 0.0f,
+								0.0f, 0.1f,
+								0.0f, 0.0f, 0.0f,
 								0.3f, 0.2f, 0.1f);
-	pointLightCount++;
+	//pointLightCount++;
 
 	pointLights[1] = PointLight(0.0f, 1.0f, 0.0f,
-								0.1f, 1.0f,
+								0.0f, 0.1f,
 								-4.0f, 2.0f, 0.0f,
 								0.3f, 0.1f, 0.1f);
-	pointLightCount++;
+	//pointLightCount++;
 
+	unsigned int spotLightCount = 0;
+	spotLights[0] = SpotLight(1.0f, 1.0f, 1.0f,
+								0.0f, 2.0f,
+								0.0f, 0.0f, 0.0f,
+								0.0f, -1.0f, 0.0f,
+								1.0f, 0.0f, 0.0f,						
+								20.0f);
+		spotLightCount++;
+
+	spotLights[1] = SpotLight(1.0f, 1.0f, 1.0f,
+								0.0f, 1.0f,
+								0.0f, -1.5f, 0.0f,
+								-100.0f, -1.0f, 0.0f,
+								1.0f, 0.0f, 0.0f,						
+								20.0f);
+		spotLightCount++;
 
 	// Initialize uniform variables
 	GLuint uniformProjection = 0, uniformModel = 0, uniformView = 0, uniformEyePosition = 0, 
@@ -240,10 +258,15 @@ int main()
 		uniformSpecularIntensity = shaderList[0].GetSpecularIntensityLocation();
 		uniformShininess = shaderList[0].GetShininessLocation();
 
+		// Set "flashlight" slightly below camera to have more flashlight-like behavior 
+		glm::vec3 lowerLight = camera.getCameraPosition();
+		lowerLight.y -= 0.5f;
+		spotLights[0].SetFlash(lowerLight, camera.getCameraDirection());
 
 		// Set active lighting
 		shaderList[0].SetDirectionalLight(mainLight);
 		shaderList[0].SetPointLights(pointLights, pointLightCount);
+		shaderList[0].SetSpotLights(spotLights, spotLightCount);
 
 
 		// Set "universal" uniforms (projection, view, and eye position apply to entire scene)

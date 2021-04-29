@@ -5,6 +5,7 @@ in vec4 vColor;
 in vec2 TexCoord;
 in vec3 Normal;
 in vec3 FragPos;
+in vec4 DirectionalLightSpacePos;
 
 
 // Out Variables
@@ -62,20 +63,71 @@ uniform PointLight pointLights[MAX_POINT_LIGHTS];
 uniform SpotLight spotLights[MAX_SPOT_LIGHTS];
 
 uniform sampler2D theTexture;
+uniform sampler2D directionalShadowMap;
+
 uniform Material material;
 
 uniform vec3 eyePosition;
 
 
-// Methods
-// Base light calculation (ambient, diffuse, specular)
-vec4 CalcLightByDirection(Light light, vec3 direction)
+// Methods:
+
+// Check if current fragment is the closest fragment to the light in the light's line of sight. Set shadow accordingly
+float CalcDirectionalShadowFactor(DirectionalLight light)
+{
+	vec3 projCoords = DirectionalLightSpacePos.xyz / DirectionalLightSpacePos.w; // transform light space position into clip space [-1.0, 1.0]
+	projCoords = (projCoords * 0.5) + 0.5; // tranform to [0.0, 1.0] depth range
+
+	// Get the shadow map depth at the current position (shadow map is composed of closest depths)
+	// shadowMap texture only has one value: the depth (r). To get that value at the corresponding directional light position reference projCoords.xy
+	float currentDepth = projCoords.z;									 // depth of current fragment
+
+	// remove shadow acne
+	vec3 normal = normalize(Normal);
+	vec3 lightDir = normalize(light.direction);
+	
+	// set bias. May need to be adjusted per light
+	float bias = max(0.05 * (1 - dot(normal, lightDir)), 0.005);  // Range [0.5, 0.005], function of angle between normal and light direction
+
+	// PCF: Percentage closest filtering to smooth shadow edges
+	float shadow = 0.0;
+
+	// get single texel size in relation to overall texture
+	vec2 texelSize = 1.0 / textureSize(directionalShadowMap, 0); // textureSize args: texture, mipmap level
+	
+	// iterate through 9 texels centered on current texel
+	for (int x = -2; x <= 2; ++x)
+	{
+		for (int y = -2; y <= 2; ++y)
+		{
+			// depth of current and surrounding texels
+			float pcfDepth = texture(directionalShadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
+
+			// if current depth is greater than the shadow map depth, set full shadow, else no shadow
+			shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+		}
+	}
+
+	shadow /= 25.0f; // average of current and surrounding texels
+	// end PCF and bias solutions
+
+	// if fragment is beyond far plane, set no shadow
+	if (projCoords.z > 1.0)
+	{
+		shadow = 0.0; 
+	}
+
+	return shadow;
+}
+
+// Base light calculation (ambient, diffuse, specular) adjusted for shadow
+vec4 CalcLightByDirection(Light light, vec3 direction, float shadowFactor)
 {
 	// Ambient Calculation
 	vec4 ambientColor = vec4(light.color, 1.0f) * light.ambientIntensity;
 
 	// Diffuse Calculation
-	float diffuseFactor = max(dot(normalize(Normal), normalize(direction)), 0.0f);
+	float diffuseFactor = max(dot(normalize(Normal), normalize(direction)), 0.0f); // usually, direction is negated as well as normalized
 	vec4 diffuseColor = vec4(light.color * light.diffuseIntensity * diffuseFactor, 1.0f);
 
 	// Specular Calculation
@@ -101,14 +153,15 @@ vec4 CalcLightByDirection(Light light, vec3 direction)
 	}
 
 	// Total light is the sume of the components
-	return (ambientColor + diffuseColor + specularColor);		
+	return (ambientColor + (1.0 - shadowFactor) * (diffuseColor + specularColor));		
 }
 
 
 // Simply the base light calculation
 vec4 CalcDirectionalLight()
 {
-	return CalcLightByDirection(directionalLight.base, directionalLight.direction);
+	float shadowFactor = CalcDirectionalShadowFactor(directionalLight); // check if fragment is in shadow
+	return CalcLightByDirection(directionalLight.base, directionalLight.direction, shadowFactor);
 }
 
 
@@ -121,7 +174,7 @@ vec4 CalcPointLight(PointLight pLight)
 	direction = normalize(direction);
 
 	// Base point light value is simply the directional light calculation
-	vec4 color = CalcLightByDirection(pLight.base, direction);
+	vec4 color = CalcLightByDirection(pLight.base, direction, 0.0f); // 0.0f passes no shadow
 
 	// Compute attenuation for "drop-off" factor
 	float attenuation = pLight.exponent * distance * distance +

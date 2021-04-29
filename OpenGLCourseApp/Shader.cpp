@@ -88,7 +88,7 @@ void Shader::CompileShader(const char* vertexCode, const char* fragmentCode)
 	// End error handling
 	
 
-	// Assign ids to shader uniforms. Essentially creates aliases for each uniform that can be called outside shader code
+	// Assign IDs to shader uniforms. Essentially creates aliases for each uniform that can be called outside shader code
 	uniformModel = glGetUniformLocation(shaderID, "model");
 	uniformProjection = glGetUniformLocation(shaderID, "projection");
 	uniformView = glGetUniformLocation(shaderID, "view");
@@ -169,6 +169,11 @@ void Shader::CompileShader(const char* vertexCode, const char* fragmentCode)
 		snprintf(locBuff, sizeof(locBuff), "spotLights[%d].edge", i);
 		uniformSpotLight[i].uniformEdge = glGetUniformLocation(shaderID, locBuff);
 	}
+
+	// set IDs for shadows
+	uniformTexture = glGetUniformLocation(shaderID, "theTexture");
+	uniformDirectionalLightTransform = glGetUniformLocation(shaderID, "directionalLightTransform");
+	uniformDirectionalShadowMap = glGetUniformLocation(shaderID, "directionalShadowMap");
 }
 
 
@@ -280,6 +285,7 @@ GLuint Shader::GetEyePositionLocation()
 
 #pragma endregion
 
+#pragma region Setters
 
 // Pass applicable uniform variables to DirectionLight object to set those values
 void Shader::SetDirectionalLight(DirectionalLight& dLight)
@@ -322,6 +328,25 @@ void Shader::SetSpotLights(SpotLight* sLight, unsigned int lightCount)
 	}
 
 }
+
+// Set shadow uniforms:
+void Shader::SetTexture(GLuint textureUnit)
+{
+	glUniform1i(uniformTexture, textureUnit);
+}
+
+void Shader::SetDirectionalShadowMap(GLuint textureUnit)
+{
+	glUniform1i(uniformDirectionalShadowMap, textureUnit);
+}
+ 
+void Shader::SetDirectionalLightTransform(glm::mat4* lTransform)
+{
+	// args: GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+	glUniformMatrix4fv(uniformDirectionalLightTransform, 1, GL_FALSE, glm::value_ptr(*lTransform)); // not sure why it's necessary to dereference a pointer to create a pointer to the dereference value
+}
+
+#pragma endregion
 
 // sets instance of shader to active shader
 void Shader::UseShader()

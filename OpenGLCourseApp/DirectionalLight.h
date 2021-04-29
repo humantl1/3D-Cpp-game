@@ -13,13 +13,16 @@ class DirectionalLight :
 public:
 	DirectionalLight();
 
-	DirectionalLight(GLfloat red, GLfloat green, GLfloat blue,	// Inherit colors from Light class
+	DirectionalLight(GLfloat shadowWidth, GLfloat shadowHeight, // shadow map resolution
+		GLfloat red, GLfloat green, GLfloat blue,				// Inherit colors from Light class
 		GLfloat aIntensity, GLfloat dIntensity,					// Inherit intensities from Light class
 		GLfloat xDir, GLfloat yDir, GLfloat zDir);				// Direction light is shining. Unique to DirectionalLight
 
 	// Set uniform variables related to directional light. Called from Shader.SetDirectionalLight
 	void UseLight(GLuint ambientIntensityLocation, GLuint ambientColorLocation,
 		GLuint diffuseIntensityLocation, GLuint directionLocation);
+
+	glm::mat4 CalculateLightTransform();
 
 	~DirectionalLight();
 

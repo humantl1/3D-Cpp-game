@@ -6,6 +6,10 @@
 #include <fstream>
 
 #include <GL\glew.h>
+
+#include <glm\glm.hpp>
+#include <glm\gtc\type_ptr.hpp>
+
 #include "CommonValues.h"
 
 #include "DirectionalLight.h"
@@ -22,6 +26,7 @@ public:
 
 	std::string ReadFile(const char* fileLocation);
 
+	// Shader Location Getters
 	GLuint GetProjectionLocation();
 	GLuint GetModelLocation();
 	GLuint GetViewLocation();
@@ -33,9 +38,13 @@ public:
 	GLuint GetShininessLocation();
 	GLuint GetEyePositionLocation();
 
+	// Pass shader uniform variables to applicable objects for Setting
 	void SetDirectionalLight(DirectionalLight& dLight);
 	void SetPointLights(PointLight* pLight, unsigned int lightCount);
 	void SetSpotLights(SpotLight* sLight, unsigned int lightCount);
+	void SetTexture(GLuint textureUnit);				// which texture unit to bind to the uniform value for texture
+	void SetDirectionalShadowMap(GLuint textureUnit);   // which texture to bind to directional shadow map
+	void SetDirectionalLightTransform(glm::mat4* lTransform);
 	
 	void UseShader();
 	void ClearShader();
@@ -43,16 +52,18 @@ public:
 	~Shader();
 
 private:
-	int pointLightCount;
-	int spotLightCount;
+	int pointLightCount;																// number of point lights
+	int spotLightCount;																	// number of spot lights
 
-	GLuint shaderID, uniformProjection, uniformModel, uniformView, uniformEyePosition, 
-		uniformSpecularIntensity, uniformShininess;
+	GLuint shaderID, uniformProjection, uniformModel, uniformView, uniformEyePosition,  // matrix IDs
+		uniformSpecularIntensity, uniformShininess,										// material IDs
+		uniformTexture,																	// texture IDs
+		uniformDirectionalLightTransform, uniformDirectionalShadowMap;					// shadow IDs
 
-	GLuint uniformPointLightCount;
-	GLuint uniformSpotLightCount;
+	GLuint uniformPointLightCount;														// ID of point light count
+	GLuint uniformSpotLightCount;														// ID of spot light count
 
-	struct // can contain multiple uniform locations for different directional lights
+	struct // can contain multiple uniform locations for different directional lights	// IDs of Directional Light struct members
 	{
 		GLuint uniformColor;
 		GLuint uniformAmbientIntensity;
@@ -61,7 +72,7 @@ private:
 		GLuint uniformDirection;
 	} uniformDirectionalLight;
 
-	struct // can contain multiple uniform locations for point lights
+	struct // can contain multiple uniform locations for point lights					// IDs of Point Light struct members
 	{
 		GLuint uniformColor;
 		GLuint uniformAmbientIntensity;
@@ -73,7 +84,7 @@ private:
 		GLuint uniformExponent;
 	} uniformPointLight[MAX_POINT_LIGHTS];
 
-	struct
+	struct																				// IDs of Spot Light struct members
 	{
 		GLuint uniformColor;
 		GLuint uniformAmbientIntensity;

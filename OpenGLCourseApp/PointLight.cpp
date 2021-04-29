@@ -8,7 +8,8 @@ PointLight::PointLight(GLfloat red, GLfloat green, GLfloat blue,					// Inherit 
 						GLfloat aIntensity, GLfloat dIntensity,						// Inherit intensities from Light class
 						GLfloat xPos, GLfloat yPos, GLfloat zPos,					// Position of light source. Unique to DirectionalLight
 						GLfloat con, GLfloat lin, GLfloat exp) :					// Attenuation factors. Determines strength of light over distance
-							Light(red, green, blue, aIntensity, dIntensity),		// Position and attenuation are unique to PointLights
+							Light(1024, 1024,										// shadow map width and height (temp values)
+								red, green, blue, aIntensity, dIntensity),			// Position and attenuation are unique to PointLights
 								position {glm::vec3(xPos, yPos, zPos)},
 								constant {con}, linear {lin}, exponent {exp} { }
 

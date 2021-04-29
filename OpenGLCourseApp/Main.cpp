@@ -7,6 +7,7 @@
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -22,8 +23,13 @@
 #include "PointLight.h"
 #include "SpotLight.h"
 #include "Material.h"
+#include "Model.h"
 
 const float toRadians = 3.14159265f / 180.0f;
+
+// Initialize uniform variables
+GLuint uniformProjection = 0, uniformModel = 0, uniformView = 0, uniformEyePosition = 0,
+		uniformSpecularIntensity = 0, uniformShininess = 0;
 
 Window mainWindow;
 Camera camera;
@@ -34,15 +40,25 @@ Texture asteroidTexture;
 Material shinyMaterial;
 Material dullMaterial;
 
+Model xwing;
+Model asteroid;
+Model asteroid2;
+
 DirectionalLight mainLight;
 PointLight pointLights[MAX_POINT_LIGHTS];
 SpotLight spotLights[MAX_SPOT_LIGHTS];
 
+unsigned int pointLightCount = 0;
+unsigned int spotLightCount = 0;
+ 
 GLfloat deltaTime = 0.0f;
 GLfloat lastTime = 0.0f;
 
+GLfloat asteroidAngle = 0.0f;
+
 std::vector<Mesh*> meshList;
 std::vector<Shader> shaderList;
+Shader directionalShadowShader;
 
 static const char* vShader = "Shaders/shader.vert";
 static const char* fShader = "Shaders/shader.frag";
@@ -147,133 +163,16 @@ void CreateShaders()
 	Shader* shader1 = new Shader();
 	shader1->CreateFromFiles(vShader, fShader);
 	shaderList.push_back(*shader1);
+
+	directionalShadowShader = Shader();
+	directionalShadowShader.CreateFromFiles("Shaders/directional_shadow_map.vert", "Shaders/directional_shadow_map.frag");
 }
 
-int main()
+
+// Render passes
+
+void RenderScene()
 {
-	mainWindow = Window(1366, 768);
-	mainWindow.initialize();
-	CreateObjects();
-	CreateShaders();
-
-
-	// Set Textures
- 	rockTexture = Texture((char*)"Textures/rock.png");
-	rockTexture.LoadTexture();
-	asteroidTexture = Texture((char*)"Textures/asteroid.png");
-	asteroidTexture.LoadTexture();
-
-
-	// Set Materials
-	shinyMaterial = Material(1.0f, 256);
-	dullMaterial = Material(0.3f, 4);
-
-
-	// Set Lighting
-	mainLight = DirectionalLight(1.0f, 1.0f, 1.0f,	// colors
-								0.1f, 0.1f,			// ambient & diffuse intensities 
-								0.0f, 0.0f, -1.0f);	// direction light is shining
-
-	unsigned int pointLightCount = 0;
-	pointLights[0] = PointLight(0.0f, 0.0f, 1.0f,
-								0.0f, 0.1f,
-								0.0f, 0.0f, 0.0f,
-								0.3f, 0.2f, 0.1f);
-	//pointLightCount++;
-
-	pointLights[1] = PointLight(0.0f, 1.0f, 0.0f,
-								0.0f, 0.1f,
-								-4.0f, 2.0f, 0.0f,
-								0.3f, 0.1f, 0.1f);
-	//pointLightCount++;
-
-	unsigned int spotLightCount = 0;
-	spotLights[0] = SpotLight(1.0f, 1.0f, 1.0f,
-								0.0f, 2.0f,
-								0.0f, 0.0f, 0.0f,
-								0.0f, -1.0f, 0.0f,
-								1.0f, 0.0f, 0.0f,						
-								20.0f);
-		spotLightCount++;
-
-	spotLights[1] = SpotLight(1.0f, 1.0f, 1.0f,
-								0.0f, 1.0f,
-								0.0f, -1.5f, 0.0f,
-								-100.0f, -1.0f, 0.0f,
-								1.0f, 0.0f, 0.0f,						
-								20.0f);
-		spotLightCount++;
-
-	// Initialize uniform variables
-	GLuint uniformProjection = 0, uniformModel = 0, uniformView = 0, uniformEyePosition = 0, 
-		uniformSpecularIntensity = 0, uniformShininess = 0;
-
-
-	// Set uniform values outside of main loop:
-
-	// initial camera values
-	camera = Camera(glm::vec3(0.0f, 0.0f, 0.0f),	// Camera start position
-		glm::vec3(0.0f, 1.0f, 0.0f),				// Camera start up direction
-		-90.0f,										// Camera start yaw
-		0.0f,										// Camera start pitch
-		5.00f,										// Camera move speed
-		0.2f);										// Camera turn speed
-
-	// projection matrix doesn't change
-	glm::mat4 projection = glm::perspective(
-		glm::radians(45.0f), // fov from top to bottom
-		mainWindow.getBufferWidth() / (GLfloat)mainWindow.getBufferHeight(), // aspect ratio
-		0.1f, // near z
-		100.0f); // far z
-
-
-	// Main loop
-	while (!mainWindow.getShouldClose())
-	{
-		// Clear window
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the color and depth buffers
-
-
-		// Delta Time
-		GLfloat now = glfwGetTime(); // returns time in seconds
-		deltaTime = now - lastTime;
-		lastTime = now;
-
-
-		// Get + handle user input events
-		glfwPollEvents();
-		camera.keyControl(mainWindow.getKeys(), deltaTime);
-		camera.mouseControl(mainWindow.getXChange(), mainWindow.getYChange());
-
-
-		// start using shader program
-		shaderList[0].UseShader(); 
-
-		// assign uniform handles
-		uniformModel = shaderList[0].GetModelLocation();
-		uniformProjection = shaderList[0].GetProjectionLocation();
-		uniformView = shaderList[0].GetViewLocation();
-		uniformEyePosition = shaderList[0].GetEyePositionLocation();
-		uniformSpecularIntensity = shaderList[0].GetSpecularIntensityLocation();
-		uniformShininess = shaderList[0].GetShininessLocation();
-
-		// Set "flashlight" slightly below camera to have more flashlight-like behavior 
-		glm::vec3 lowerLight = camera.getCameraPosition();
-		lowerLight.y -= 0.5f;
-		spotLights[0].SetFlash(lowerLight, camera.getCameraDirection());
-
-		// Set active lighting
-		shaderList[0].SetDirectionalLight(mainLight);
-		shaderList[0].SetPointLights(pointLights, pointLightCount);
-		shaderList[0].SetSpotLights(spotLights, spotLightCount);
-
-
-		// Set "universal" uniforms (projection, view, and eye position apply to entire scene)
-		glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(projection)); // pass projection matrix to shader program
-		glUniformMatrix4fv(uniformView, 1, GL_FALSE, glm::value_ptr(camera.calculateViewMatrix())); // pass camera matrix to shader program
-		glUniform3f(uniformEyePosition, camera.getCameraPosition().x, camera.getCameraPosition().y, camera.getCameraPosition().z);
-
 
 		// Render Objects:
 
@@ -308,16 +207,222 @@ int main()
 
 		// floor
 		model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0.0f, -2.0f, 0.0f));
+		model = glm::translate(model, glm::vec3(0.0f, -2.0f, -6.0f));
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		asteroidTexture.UseTexture();
 		dullMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
 		meshList[2]->RenderMesh();
 
+		// xwing
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-7.0f, 0.0f, 10.0f));
+		model = glm::scale(model, glm::vec3(0.01f, 0.01f, 0.01f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		dullMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
+		xwing.RenderModel();
+
+		asteroidAngle += 0.2f;
+		if (asteroidAngle > 360.0f)
+		{
+			asteroidAngle = 0.1f;
+		}
+
+		// asteroid
+		model = glm::mat4(1.0f);
+		model = glm::rotate(model, asteroidAngle * toRadians, glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::translate(model, glm::vec3(4.0f, 6.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(0.003f, 0.003f, 0.003f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		shinyMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
+		asteroid.RenderModel();
+
+		// asteroid2
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-2.0f, 4.0f, 0.0f));
+		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		shinyMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
+		asteroid2.RenderModel();
+
 		// End Object Rendering.
+}
+
+/* Draw to shadow map
+*  Procedure:
+*  1. Set directional shadow shader as active
+*  2. Set viewport to framebuffer dimensions (seems funny this isn't the other way around, huh?)
+*  3. Set FBO as framebuffer and clear old data
+*  4. Assign the directional_shadow_map.vert uniform IDs: model and directionalLightTranform
+*  5. Render the scene (from the perspective of a light)
+*  6. Rebind the default framebuffer for writing to the screen
+*/
+void DirectionalShadowMapPass(DirectionalLight* light)
+{
+	directionalShadowShader.UseShader();
+
+	// set viewport to same dimensions as framebuffer
+	glViewport(0, 0, light->GetShadowMap()->GetShadowWidth(), light->GetShadowMap()->GetShadowHeight()); 
+
+	light->GetShadowMap()->Write();		// bind FBO framebuffer
+	glClear(GL_DEPTH_BUFFER_BIT);		// clear any previous depth buffer data
+
+	uniformModel = directionalShadowShader.GetModelLocation();									// assign uniformModel shader ID
+	glm::mat4 lightTransform = light->CalculateLightTransform();
+	directionalShadowShader.SetDirectionalLightTransform(&lightTransform);	// assign uniformDirectionalLightTransform ID
+
+	RenderScene(); // Render scene from light's perspective
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+/* Draw to screen frame buffer
+*  Procedure:
+*  1. 
+*/
+void RenderPass(glm::mat4 projectionMatrix, glm::mat4 viewMatrix)
+{
+	shaderList[0].UseShader();	
+	
+	// assign uniform handles
+	uniformModel = shaderList[0].GetModelLocation();
+	uniformProjection = shaderList[0].GetProjectionLocation();
+	uniformView = shaderList[0].GetViewLocation();
+	uniformEyePosition = shaderList[0].GetEyePositionLocation();
+	uniformSpecularIntensity = shaderList[0].GetSpecularIntensityLocation();
+	uniformShininess = shaderList[0].GetShininessLocation();
+
+	glViewport(0, 0, 1366, 768); // TODO: viewport function
+
+	// Clear window
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the color and depth buffers
 
 
-		glUseProgram(0); // clear shader program
+	// Set "universal" uniforms (projection, view, and eye position apply to entire scene)
+	glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(projectionMatrix)); // pass projection matrix to shader program
+	glUniformMatrix4fv(uniformView, 1, GL_FALSE, glm::value_ptr(viewMatrix)); // pass camera matrix to shader program
+	glUniform3f(uniformEyePosition, camera.getCameraPosition().x, camera.getCameraPosition().y, camera.getCameraPosition().z);
+
+
+	// Set active lighting
+	shaderList[0].SetDirectionalLight(mainLight);
+	shaderList[0].SetPointLights(pointLights, pointLightCount);
+	shaderList[0].SetSpotLights(spotLights, spotLightCount);
+	glm::mat4 lightTransform = mainLight.CalculateLightTransform();
+	shaderList[0].SetDirectionalLightTransform(&lightTransform); // used in shader.vert to calculate fragment positions in relation to the directional light
+
+	// standard textures are unit 0, so set shadow map texture to unit 1
+	mainLight.GetShadowMap()->Read(GL_TEXTURE1); 
+	shaderList[0].SetTexture(0);
+	shaderList[0].SetDirectionalShadowMap(1);
+
+	// Set "flashlight" slightly below camera to have more flashlight-like behavior 
+	glm::vec3 lowerLight = camera.getCameraPosition();
+	lowerLight.y -= 0.5f;
+	spotLights[0].SetFlash(lowerLight, camera.getCameraDirection());
+
+	RenderScene();
+}
+
+// End render passes
+
+int main()
+{
+	mainWindow = Window(1366, 768);
+	mainWindow.initialize();
+	CreateObjects();
+	CreateShaders();
+
+
+	// Set Textures
+ 	rockTexture = Texture((char*)"Textures/rock.png");
+	rockTexture.LoadTexture();
+	asteroidTexture = Texture((char*)"Textures/asteroid.png");
+	asteroidTexture.LoadTexture();
+ 
+
+
+	// Set Materials
+	shinyMaterial = Material(1.0f, 256);
+	dullMaterial = Material(0.3f, 4);
+
+	// Load Models
+	xwing = Model();
+	xwing.LoadModel("Models/x-wing.obj");
+
+	asteroid = Model();
+	asteroid.LoadModel("Models/10464_Asteroid_v1_Iterations-2.obj");
+
+	asteroid2 = Model();
+	asteroid2.LoadModel("Models/Asteroid_1_LOW_MODEL_.obj");
+
+	// TODO: handle lights in classes
+	// Set Lighting
+	mainLight = DirectionalLight(4096, 4096,			// resolution of shadow map
+								1.0f, 1.0f, 1.0f,		// colors
+								0.1f, 0.6f,				// ambient & diffuse intensities 
+								0.0f, -15.0f, -10.0f);	// direction light is shining
+
+	pointLights[0] = PointLight(0.0f, 0.0f, 1.0f,
+								0.0f, 0.1f,
+								0.0f, 0.0f, 0.0f,
+								0.3f, 0.2f, 0.1f);
+	//pointLightCount++;
+
+	pointLights[1] = PointLight(0.0f, 1.0f, 0.0f,
+								0.0f, 0.1f,
+								-4.0f, 2.0f, 0.0f,
+								0.3f, 0.1f, 0.1f);
+	//pointLightCount++;
+
+	spotLights[0] = SpotLight(1.0f, 1.0f, 1.0f,
+								0.0f, 2.0f,
+								0.0f, 0.0f, 0.0f,
+								0.0f, -1.0f, 0.0f,
+								1.0f, 0.0f, 0.0f,						
+								20.0f);
+		//spotLightCount++;
+
+	spotLights[1] = SpotLight(1.0f, 1.0f, 1.0f,
+								0.0f, 1.0f,
+								0.0f, -1.5f, 0.0f,
+								-100.0f, -1.0f, 0.0f,
+								1.0f, 0.0f, 0.0f,						
+								20.0f);
+		//spotLightCount++;
+
+
+	// initial camera values
+	camera = Camera(glm::vec3(0.0f, 0.0f, 0.0f),	// Camera start position
+		glm::vec3(0.0f, 1.0f, 0.0f),				// Camera start up direction
+		-90.0f,										// Camera start yaw
+		0.0f,										// Camera start pitch
+		5.00f,										// Camera move speed
+		0.2f);										// Camera turn speed
+
+	// projection matrix doesn't change
+	glm::mat4 projection = glm::perspective(
+		glm::radians(45.0f), // fov from top to bottom
+		mainWindow.getBufferWidth() / (GLfloat)mainWindow.getBufferHeight(), // aspect ratio
+		0.1f, // near z
+		100.0f); // far z
+
+	// Main loop
+	while (!mainWindow.getShouldClose())
+	{
+		// Delta Time
+		GLfloat now = glfwGetTime(); // returns time in seconds
+		deltaTime = now - lastTime;
+		lastTime = now;
+
+		// Get + handle user input events
+		glfwPollEvents();
+		camera.keyControl(mainWindow.getKeys(), deltaTime);
+		camera.mouseControl(mainWindow.getXChange(), mainWindow.getYChange());
+
+		DirectionalShadowMapPass(&mainLight); // render scene to shadow map frame buffer
+		RenderPass(projection, camera.calculateViewMatrix());
+
+		glUseProgram(0);
 
 		mainWindow.swapBuffer();
 	}

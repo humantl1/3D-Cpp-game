@@ -23,6 +23,7 @@ public:
 
 	void CreateFromString(const char* vertexCode, const char* fragmentCode);
 	void CreateFromFiles(const char* vertexLocation, const char* fragmentLocation);
+	void CreateFromFiles(const char* vertexLocation, const char* geometryLocation, const char* fragmentLocation);
 
 	std::string ReadFile(const char* fileLocation);
 
@@ -37,14 +38,17 @@ public:
 	GLuint GetSpecularIntensityLocation();
 	GLuint GetShininessLocation();
 	GLuint GetEyePositionLocation();
+	GLuint GetOmniLightPosLocation();
+	GLuint GetFarPlaneLocation();
 
 	// Pass shader uniform variables to applicable objects for Setting
 	void SetDirectionalLight(DirectionalLight& dLight);
 	void SetPointLights(PointLight* pLight, unsigned int lightCount);
 	void SetSpotLights(SpotLight* sLight, unsigned int lightCount);
-	void SetTexture(GLuint textureUnit);				// which texture unit to bind to the uniform value for texture
-	void SetDirectionalShadowMap(GLuint textureUnit);   // which texture to bind to directional shadow map
+	void SetTexture(GLuint textureUnit);								// which texture unit to bind to the uniform value for texture
+	void SetDirectionalShadowMap(GLuint textureUnit);					// which texture to bind to directional shadow map
 	void SetDirectionalLightTransform(glm::mat4* lTransform);
+	void SetLightMatrices(std::vector<glm::mat4> lightMatrices); 
 	
 	void UseShader();
 	void ClearShader();
@@ -52,16 +56,19 @@ public:
 	~Shader();
 
 private:
-	int pointLightCount;																// number of point lights
-	int spotLightCount;																	// number of spot lights
+	int pointLightCount;	// number of point lights
+	int spotLightCount;		// number of spot lights
 
 	GLuint shaderID, uniformProjection, uniformModel, uniformView, uniformEyePosition,  // matrix IDs
 		uniformSpecularIntensity, uniformShininess,										// material IDs
 		uniformTexture,																	// texture IDs
-		uniformDirectionalLightTransform, uniformDirectionalShadowMap;					// shadow IDs
+		uniformDirectionalLightTransform, uniformDirectionalShadowMap,					// shadow IDs
+		uniformOmniLightPos, uniformFarPlane;											// IDs for omni_shadow_map.frag
 
-	GLuint uniformPointLightCount;														// ID of point light count
-	GLuint uniformSpotLightCount;														// ID of spot light count
+	GLuint uniformLightMatrices[6];			// IDs for omni_shadow_map.geom
+
+	GLuint uniformPointLightCount;			// ID of point light count
+	GLuint uniformSpotLightCount;			// ID of spot light count
 
 	struct // can contain multiple uniform locations for different directional lights	// IDs of Directional Light struct members
 	{
@@ -100,6 +107,10 @@ private:
 	} uniformSpotLight[MAX_SPOT_LIGHTS];
 
 	void CompileShader(const char* vertexCode, const char* fragmentCode);
+	void CompileShader(const char* vertexCode, const char* geometryCode, const char* fragmeentCode);
 	void AddShader(GLuint theProgram, const char* shaderCode, GLenum shaderType);
+
+	// helper for CompileShaders
+	void CompileProgram();
 };
 

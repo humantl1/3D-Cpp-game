@@ -24,7 +24,7 @@ void main()
 
 	TexCoord = tex;
 
-	Normal = mat3(transpose(inverse(model))) * norm;
+	Normal = mat3(transpose(inverse(model))) * norm; // corrects normals for non-uniform scaling
 
 	FragPos = (model * vec4(pos, 1.0)).xyz;
 }

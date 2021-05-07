@@ -3,7 +3,7 @@
 ShadowMap::ShadowMap() : FBO{0}, shadowMap{0} {}
 
 // 1. Generate Framebuffer FBO and Texture shadowMap
-// 2. Bind shadowMap as active texture
+// 2. Set shadow map as active and bind to 2D texture
 // *3. Define shadowMap
 // 4. Set shadowMap border and mipmap level-of-detail parameters
 // 5. Bind FBO as active frame buffer (might be able to do this @ step 2
@@ -13,16 +13,20 @@ ShadowMap::ShadowMap() : FBO{0}, shadowMap{0} {}
 // 9. Unbind FBO 
 bool ShadowMap::Init(GLuint width, GLuint height)
 {
+	// shadow map texture width and height should match viewport width and height
 	shadowWidth = width;
 	shadowHeight = height;
-
+	
+// 1.
 	// create a framebuffer (screen buffer)
 	// draw to this buffer then save as texture to be used on the default frame buffer
-	glGenFramebuffers(1, &FBO); // create 1, pass ID to FBO
-
+	glGenFramebuffers(1, &FBO);				 // create 1, pass ID to FBO
 	glGenTextures(1, &shadowMap);			 // create 1, pass ID to shadowMap
-	glBindTexture(GL_TEXTURE_2D, shadowMap); // set shadowMap as active texture
 
+// 2.
+	glBindTexture(GL_TEXTURE_2D, shadowMap); // bind shadow map to a 2D texture
+
+// *3.
 	// Define texture image, allowing elements of an image array to be read by shaders
 	glTexImage2D(GL_TEXTURE_2D,				 // target texture (shadowMap via GL_TEXTURE_2D) 
 					0,						 // mipmap level-of-detail. 0 is base image level.  
@@ -33,16 +37,19 @@ bool ShadowMap::Init(GLuint width, GLuint height)
 					GL_DEPTH_COMPONENT,		 // format of of pixel data 
 					GL_FLOAT,				 // data type of pixel data
 					nullptr);				 // pointer to the image data in memory. The image that will be passed to this will be created in the FBO
-	
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);		// clamp value beyond border of shadow map
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);		// clamp value beyond border of shadow map
-	float bColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };									// set the border "color"
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, bColor);			// this sets the value to 1 
+
+// 4.	
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);			// set mipmap minifying function to linear
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);			// set mipmap magnifying function to linear
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);		// clamp value beyond border of shadow map
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);		// clamp value beyond border of shadow map
+	float bColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };								// set the border "color"
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, bColor);			// this sets the value to 1 
 
+// 5.
 	glBindFramebuffer(GL_FRAMEBUFFER, FBO);  // set FBO as active frame buffer TODO: I think this can be bound when the texture is bound. Check
 	
+// *6.
 	// "bind" shadow map (via GL_TEXTURE_2D) to FBO, so that everytime the FBO is updated, the image will be output to the shadow map texture
 	glFramebufferTexture2D(GL_FRAMEBUFFER,	 // What we are writing from
 						GL_DEPTH_ATTACHMENT, // Which part of frame buffer should be attached (could also be color, alpha, etc)
@@ -50,10 +57,12 @@ bool ShadowMap::Init(GLuint width, GLuint height)
 						shadowMap,			 // ID of texture to write to
 						0);					 // mipmap level
 
+// 7.
 	// it is necessary to explicitly specify we are NOT writing color data
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
 
+// 8.
 	// error checking
 	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	if (status != GL_FRAMEBUFFER_COMPLETE)
@@ -62,13 +71,14 @@ bool ShadowMap::Init(GLuint width, GLuint height)
 		return false;
 	}
 
+// 9.
 	glBindFramebuffer(GL_FRAMEBUFFER, 0); // 0 is the default frame buffer for the screen
 	return true;
 }
 
 void ShadowMap::Write()
 {
-	glBindFramebuffer(GL_FRAMEBUFFER, FBO); // Write to the offscreen framebuffer FBO
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FBO); // Write to the offscreen framebuffer FBO
 }
 
 void ShadowMap::Read(GLenum textureUnit)

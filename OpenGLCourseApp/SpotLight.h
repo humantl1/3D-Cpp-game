@@ -7,12 +7,14 @@ class SpotLight :
 public:
     SpotLight();
 
-    SpotLight(GLfloat red, GLfloat green, GLfloat blue, 
-		GLfloat aIntensity, GLfloat dIntensity,     // light intensity (ambient and directional)
-        GLfloat xPos, GLfloat yPos, GLfloat zPos,   // light position
-        GLfloat xdir, GLfloat yDir, GLfloat zDir,   // direction of light rays
-		GLfloat con, GLfloat lin, GLfloat exp,      // attenuation values
-        GLfloat edge);                              // angle of light boundary 
+    SpotLight(GLuint shadowWidth, GLuint shadowHeight,	// shadow map texture width and height
+        GLfloat near, GLfloat far,                    	// light's "camera" near and far plane
+        GLfloat red, GLfloat green, GLfloat blue,       // Inherit colors from Light class
+		GLfloat aIntensity, GLfloat dIntensity,     	// light intensity (ambient and directional)
+        GLfloat xPos, GLfloat yPos, GLfloat zPos,   	// light position
+        GLfloat xdir, GLfloat yDir, GLfloat zDir,   	// direction of light rays
+		GLfloat con, GLfloat lin, GLfloat exp,      	// attenuation values
+        GLfloat edge);                              	// angle of light boundary 
 
     void UseLight(GLuint ambientIntensityLocation, GLuint ambientColorLocation,
         GLuint diffuseIntensityLocation, GLuint positionLocation, GLuint directionLocation,

@@ -29,7 +29,8 @@ const float toRadians = 3.14159265f / 180.0f;
 
 // Initialize uniform variables
 GLuint uniformProjection = 0, uniformModel = 0, uniformView = 0, uniformEyePosition = 0,
-		uniformSpecularIntensity = 0, uniformShininess = 0;
+		uniformSpecularIntensity = 0, uniformShininess = 0,
+		uniformDirectionalLightTransform = 0, uniformOmniLightPos = 0, uniformFarPlane = 0;
 
 Window mainWindow;
 Camera camera;
@@ -57,8 +58,10 @@ GLfloat lastTime = 0.0f;
 GLfloat asteroidAngle = 0.0f;
 
 std::vector<Mesh*> meshList;
+
 std::vector<Shader> shaderList;
 Shader directionalShadowShader;
+Shader omniShadowShader;
 
 static const char* vShader = "Shaders/shader.vert";
 static const char* fShader = "Shaders/shader.frag";
@@ -166,6 +169,8 @@ void CreateShaders()
 
 	directionalShadowShader = Shader();
 	directionalShadowShader.CreateFromFiles("Shaders/directional_shadow_map.vert", "Shaders/directional_shadow_map.frag");
+	omniShadowShader = Shader();
+	omniShadowShader.CreateFromFiles("Shaders/omni_shadow_map.vert", "Shaders/omni_shadow_map.geom", "Shaders/omni_shadow_map.frag");
 }
 
 
@@ -274,6 +279,33 @@ void DirectionalShadowMapPass(DirectionalLight* light)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+void OmniShadowMapPass(PointLight* light)
+{
+	omniShadowShader.UseShader();
+
+	// set viewport to same dimensions as framebuffer
+	glViewport(0, 0, light->GetShadowMap()->GetShadowWidth(), light->GetShadowMap()->GetShadowHeight()); 
+
+	light->GetShadowMap()->Write();		// bind FBO framebuffer
+	glClear(GL_DEPTH_BUFFER_BIT);		// clear any previous depth buffer data
+
+	// set shader uniform IDs
+	uniformModel = omniShadowShader.GetModelLocation();					// in omni_shadow_map.vert
+	uniformOmniLightPos = omniShadowShader.GetOmniLightPosLocation();	// in omni_shadow_map.frag 
+	uniformFarPlane = omniShadowShader.GetFarPlaneLocation();			// in omni_shadow_map.frag 
+
+	// Pass light position and far plane distance into omni_shadow_map.frag
+	glUniform3f(uniformOmniLightPos, light->GetPosition().x, light->GetPosition().y, light->GetPosition().z);
+	glUniform1f(uniformFarPlane, light->GetFarPlane());
+
+	// Set light matrices for omni_shadow_map.geom
+	omniShadowShader.SetLightMatrices(light->CalculateLightTransform());
+
+	RenderScene(); // Render scene from light's perspective
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0); // rebind default frame buffer for drawing to screen
+}
+
 /* Draw to screen frame buffer
 *  Procedure:
 *  1. 
@@ -362,33 +394,41 @@ int main()
 								0.1f, 0.6f,				// ambient & diffuse intensities 
 								0.0f, -15.0f, -10.0f);	// direction light is shining
 
-	pointLights[0] = PointLight(0.0f, 0.0f, 1.0f,
-								0.0f, 0.1f,
-								0.0f, 0.0f, 0.0f,
-								0.3f, 0.2f, 0.1f);
-	//pointLightCount++;
+	pointLights[0] = PointLight(1024, 1024,				// resolution of shadow map
+								0.01f, 100.0f,			// near and far plane distance
+								0.0f, 0.0f, 1.0f,		// rgb color values
+								0.0f, 0.1f,				// ambient and directional light intensity
+								0.0f, 0.0f, 0.0f,		// position of light source
+								0.3f, 0.2f, 0.1f);		// attenuation factors (strength of light over distance)
+	pointLightCount++;
 
-	pointLights[1] = PointLight(0.0f, 1.0f, 0.0f,
-								0.0f, 0.1f,
-								-4.0f, 2.0f, 0.0f,
-								0.3f, 0.1f, 0.1f);
-	//pointLightCount++;
+	pointLights[1] = PointLight(1024, 1024,				// resolution of shadow map
+								0.01f, 100.0f,			// near and far plane distance
+								0.0f, 1.0f, 0.0f,		// rgb color values
+								0.0f, 0.1f,				// ambient and directional light intensity
+								-4.0f, 2.0f, 0.0f,		// position of light source
+								0.3f, 0.2f, 0.1f);		// attenuation factors (strength of light over distance)
+	pointLightCount++;
 
-	spotLights[0] = SpotLight(1.0f, 1.0f, 1.0f,
-								0.0f, 2.0f,
-								0.0f, 0.0f, 0.0f,
-								0.0f, -1.0f, 0.0f,
-								1.0f, 0.0f, 0.0f,						
-								20.0f);
-		//spotLightCount++;
+	spotLights[0] = SpotLight(1024, 1024,				// resolution of shadow map
+								0.01f, 100.0f,			// near and far plane distance
+								1.0f, 1.0f, 1.0f,		// rgb color values
+								0.0f, 2.0f,				// ambient and directional light intensity
+								0.0f, 0.0f, 0.0f,		// position of light source
+								0.0f, -1.0f, 0.0f,		// direction of light rays
+								1.0f, 0.0f, 0.0f,		// attenuation factors (strength of light over distance				
+								20.0f);					// angle of light focus
+		spotLightCount++;
 
-	spotLights[1] = SpotLight(1.0f, 1.0f, 1.0f,
-								0.0f, 1.0f,
-								0.0f, -1.5f, 0.0f,
-								-100.0f, -1.0f, 0.0f,
-								1.0f, 0.0f, 0.0f,						
-								20.0f);
-		//spotLightCount++;
+	spotLights[1] = SpotLight(1024, 1024,				// resolution of shadow map
+								0.01f, 100.0f,			// near and far plane distance
+								1.0f, 1.0f, 1.0f,		// rgb color values
+								0.0f, 1.0f,				// ambient and directional light intensity
+								0.0f, -1.5f, 0.0f,		// position of light source
+								-100.0f, -1.0f, 0.0f,	// direction of light rays
+								1.0f, 0.0f, 0.0f,		// attenuation factors (strength of light over distance				
+								20.0f);					// angle of light focus
+		spotLightCount++;
 
 
 	// initial camera values
@@ -401,7 +441,7 @@ int main()
 
 	// projection matrix doesn't change
 	glm::mat4 projection = glm::perspective(
-		glm::radians(45.0f), // fov from top to bottom
+		glm::radians(60.0f), // fov from top to bottom
 		mainWindow.getBufferWidth() / (GLfloat)mainWindow.getBufferHeight(), // aspect ratio
 		0.1f, // near z
 		100.0f); // far z
@@ -420,6 +460,15 @@ int main()
 		camera.mouseControl(mainWindow.getXChange(), mainWindow.getYChange());
 
 		DirectionalShadowMapPass(&mainLight); // render scene to shadow map frame buffer
+		for (size_t i = 0; i < pointLightCount; i++)
+		{
+			OmniShadowMapPass(&pointLights[i]);
+		}
+		for (size_t i = 0; i < spotLightCount; i++)
+		{
+			OmniShadowMapPass(&spotLights[i]);
+		}
+
 		RenderPass(projection, camera.calculateViewMatrix());
 
 		glUseProgram(0);

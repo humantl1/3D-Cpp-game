@@ -2,14 +2,15 @@
 // render everything relative to the directional light source
 
 
-layout (location = 0) in vec3 pos; // position of a vertex
+layout (location = 0) in vec3 pos;		// position of a vertex
 
-uniform mat4 model; // convert pos to worldspace
+uniform mat4 model;						// convert pos to worldspace
 uniform mat4 directionalLightTransform; // projection * view (orthogonal)
 
 void main()
 {
 	gl_Position = directionalLightTransform * model * vec4(pos, 1.0); // convert pos into worldspace relative to light
+	// gl_Position is stored as clip space coordinates [-1.0, 1.0]
 	// depth is automatically calculated. Also, the shadow map is automatically updated with the shader's depth info (via the ShadowMap object)
 	
 }

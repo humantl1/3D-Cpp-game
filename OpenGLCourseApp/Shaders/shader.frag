@@ -47,6 +47,12 @@ struct SpotLight
 	float edge;
 };
 
+struct OmniShadowMap
+{
+	samplerCube shadowMap;  // texture, vector pointing to point on shadow map layer
+	float farPlane;			// distance shadow map reaches
+};
+
 struct Material
 {
 	float specularIntensity;
@@ -64,11 +70,21 @@ uniform SpotLight spotLights[MAX_SPOT_LIGHTS];
 
 uniform sampler2D theTexture;
 uniform sampler2D directionalShadowMap;
+uniform OmniShadowMap omniShadowMaps[MAX_POINT_LIGHTS + MAX_SPOT_LIGHTS]; // First half of array will match indices with pointLights array, second with spotLights array
 
 uniform Material material;
 
 uniform vec3 eyePosition;
 
+// vectors out from center pixel to determine sampling for shadow cube PCF
+vec3 sampleOffsetDirections[20] = vec3[]
+(
+	vec3(1, 1, 1), vec3(1, -1, 1), vec3(-1, -1, 1), vec3(-1, 1, 1), 
+	vec3(1, 1, -1), vec3(1, -1, -1), vec3(-1, -1, -1), vec3(-1, 1, -1), 
+	vec3(1, 1, 0), vec3(1, -1, 0), vec3(-1, -1, 0), vec3(-1, 1, 0), 
+	vec3(1, 0, 1), vec3(-1, 0, 1), vec3(1, 0, -1), vec3(-1, 0, -1), 
+	vec3(0, 1, 1), vec3(0, -1, 1), vec3(0, -1, -1), vec3(0, 1, -1) 
+);
 
 // Methods:
 
@@ -120,6 +136,35 @@ float CalcDirectionalShadowFactor(DirectionalLight light)
 	return shadow;
 }
 
+float CalcOmniShadowFactor(PointLight light, int shadowIndex)
+{
+	vec3 fragToLight = FragPos - light.position; // vector from fragment to light (depth of fragment from light)
+	float currentDepth = length(fragToLight);	 // get length of current fragment
+
+	float shadow = 0.0;
+	float bias = 0.05f;							 // biase to negate shadow acne
+	int samples = 20;
+	
+	float viewDistance = length(eyePosition - FragPos);                                      // distance between eye and point being rendered
+	float diskRadius = (1.0 + (viewDistance / omniShadowMaps[shadowIndex].farPlane)) / 25.0; // vary amount of pixels sampled according to view distance
+
+	// PCF to smooth shadow edges
+	for (int i = 0; i < samples; i++)
+	{
+		// get fragment with smallest depth (closest to light)
+		float closestDepth = texture(omniShadowMaps[shadowIndex].shadowMap, fragToLight + sampleOffsetDirections[i] * diskRadius).r;
+		closestDepth *= omniShadowMaps[shadowIndex].farPlane; // undo normalization of depth for vector length (occured in omni_shadow_map.frag)
+		if (currentDepth - bias > closestDepth)
+		{
+			shadow += 1.0;
+		}
+
+	}
+
+	shadow /= float(samples); // get average of surrounding shadows
+	return shadow;
+}
+
 // Base light calculation (ambient, diffuse, specular) adjusted for shadow
 vec4 CalcLightByDirection(Light light, vec3 direction, float shadowFactor)
 {
@@ -166,15 +211,17 @@ vec4 CalcDirectionalLight()
 
 
 // Calculate single point light ((ambient + diffuse + specular) / attenuation)
-vec4 CalcPointLight(PointLight pLight)
+vec4 CalcPointLight(PointLight pLight, int shadowIndex)
 {
 	// Calculate direction and distance of frag to point light
 	vec3 direction = FragPos - pLight.position;
 	float distance = length(direction);
 	direction = normalize(direction);
 
+	float shadowFactor = CalcOmniShadowFactor(pLight, shadowIndex); // Set shadow factor to 1.0 or 0 after calculating if fragment is in shadow
+
 	// Base point light value is simply the directional light calculation
-	vec4 color = CalcLightByDirection(pLight.base, direction, 0.0f); // 0.0f passes no shadow
+	vec4 color = CalcLightByDirection(pLight.base, direction, shadowFactor); 
 
 	// Compute attenuation for "drop-off" factor
 	float attenuation = pLight.exponent * distance * distance +
@@ -187,7 +234,7 @@ vec4 CalcPointLight(PointLight pLight)
 
 
 // Calculate single spot light ((ambient + diffuse + specular) / attenuation) within light cone
-vec4 CalcSpotLight(SpotLight sLight)
+vec4 CalcSpotLight(SpotLight sLight, int shadowIndex)
 {
 	// Calculate direction from spotlight to fragment
 	vec3 rayDirection = normalize(FragPos - sLight.base.position);
@@ -197,7 +244,7 @@ vec4 CalcSpotLight(SpotLight sLight)
 	// if fragment is within light cone of spot light, calculate as point light
 	if (slFactor > sLight.edge)
 	{
-		vec4 color = CalcPointLight(sLight.base);
+		vec4 color = CalcPointLight(sLight.base, shadowIndex);
 
 		// color * spot light blending factor 
 		// SLBF = greatestVal - (greatestVal - curVal) * (ratioConversion: (1.0 to 0.0) / (1.0 to about 0.98))
@@ -216,7 +263,7 @@ vec4 CalcPointLights()
 	vec4 totalColor = vec4(0, 0, 0, 0);
 	for (int i = 0; i < pointLightCount; i++)
 	{
-		totalColor += CalcPointLight(pointLights[i]);
+		totalColor += CalcPointLight(pointLights[i], i); // omniShadowMaps and pointLights arrays have matching indices
 	}
 
 	return totalColor;
@@ -229,7 +276,7 @@ vec4 CalcSpotLights()
 
 	for (int i = 0; i < spotLightCount; i++)
 	{
-		totalColor += CalcSpotLight(spotLights[i]);
+		totalColor += CalcSpotLight(spotLights[i], i + pointLightCount); // omniShadowMaps and SpotLights arrays have matching indices + offset of size of pointLights array
 	}
 
 	return totalColor;

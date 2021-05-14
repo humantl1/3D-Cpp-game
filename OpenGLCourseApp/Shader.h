@@ -25,6 +25,8 @@ public:
 	void CreateFromFiles(const char* vertexLocation, const char* fragmentLocation);
 	void CreateFromFiles(const char* vertexLocation, const char* geometryLocation, const char* fragmentLocation);
 
+	void Validate(); // note: no args because values stored in shader itself
+
 	std::string ReadFile(const char* fileLocation);
 
 	// Shader Location Getters
@@ -43,8 +45,10 @@ public:
 
 	// Pass shader uniform variables to applicable objects for Setting
 	void SetDirectionalLight(DirectionalLight& dLight);
-	void SetPointLights(PointLight* pLight, unsigned int lightCount);
-	void SetSpotLights(SpotLight* sLight, unsigned int lightCount);
+	void SetPointLights(PointLight* pLight, unsigned int lightCount, 
+							unsigned int textureUnit, // starting texture unit
+							unsigned int offset);     // offset is the offset in omniShadowMap struct array in shader.frag 
+	void SetSpotLights(SpotLight* sLight, unsigned int lightCount, unsigned int textureUnit, unsigned int offset);
 	void SetTexture(GLuint textureUnit);								// which texture unit to bind to the uniform value for texture
 	void SetDirectionalShadowMap(GLuint textureUnit);					// which texture to bind to directional shadow map
 	void SetDirectionalLightTransform(glm::mat4* lTransform);
@@ -105,6 +109,12 @@ private:
 		GLuint uniformDirection;
 		GLuint uniformEdge;
 	} uniformSpotLight[MAX_SPOT_LIGHTS];
+
+	struct // corresponds to OmniShadowMap struct in shader.frag
+	{
+		GLuint shadowMap;
+		GLuint farPlane;
+	} uniformOmniShadowMap[MAX_POINT_LIGHTS + MAX_SPOT_LIGHTS];
 
 	void CompileShader(const char* vertexCode, const char* fragmentCode);
 	void CompileShader(const char* vertexCode, const char* geometryCode, const char* fragmeentCode);

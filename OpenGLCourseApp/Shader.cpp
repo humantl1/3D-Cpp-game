@@ -111,6 +111,22 @@ void Shader::CreateFromString(const char* vertexCode, const char* fragmentCode)
 	CompileShader(vertexCode, fragmentCode);
 }
 
+void Shader::Validate()
+{	
+	GLint result = 0;
+	GLchar eLog[1024] = { 0 };
+
+	// Validate shader program
+	glValidateProgram(shaderID);
+	glGetProgramiv(shaderID, GL_VALIDATE_STATUS, &result);
+	if (!result)
+	{
+		glGetProgramInfoLog(shaderID, sizeof(eLog), NULL, eLog);
+		printf("Error validating  program: '%s'\n", eLog);
+		return;
+	}
+}
+
 // handles shader validation and uniform ID assignments
 void Shader::CompileProgram()
 {
@@ -126,17 +142,6 @@ void Shader::CompileProgram()
 		printf("Error linking program: '%s'\n", eLog);
 		return;
 	}
-
-	// Validate shader program
-	glValidateProgram(shaderID);
-	glGetProgramiv(shaderID, GL_VALIDATE_STATUS, &result);
-	if (!result)
-	{
-		glGetProgramInfoLog(shaderID, sizeof(eLog), NULL, eLog);
-		printf("Error validating  program: '%s'\n", eLog);
-		return;
-	}
-	// End error handling
 
 
 	// Assign IDs to shader uniforms. Essentially creates aliases for each uniform that can be called outside shader code
@@ -238,8 +243,20 @@ void Shader::CompileProgram()
 		snprintf(locBuff, sizeof(locBuff), "lightMatrices[%d]", i);
 		uniformLightMatrices[i] = glGetUniformLocation(shaderID, locBuff);
 	}
-}
 
+	// Set IDs for omniShadowMaps struct members in shader.frag
+	for (size_t i = 0; i < MAX_POINT_LIGHTS + MAX_SPOT_LIGHTS; i++)
+	{
+		char locBuff[100] = { '\0' };
+
+		snprintf(locBuff, sizeof(locBuff), "omniShadowMaps[%d].shadowMap", i);
+		uniformOmniShadowMap[i].shadowMap = glGetUniformLocation(shaderID, locBuff);
+
+		snprintf(locBuff, sizeof(locBuff), "omniShadowMaps[%d].farPlane", i);
+		uniformOmniShadowMap[i].farPlane = glGetUniformLocation(shaderID, locBuff);
+	}
+
+}
 
 // compile shader(s) and attach to shader program
 void Shader::AddShader(GLuint theProgram, const char* shaderCode, GLenum shaderType)
@@ -360,8 +377,9 @@ void Shader::SetDirectionalLight(DirectionalLight& dLight)
 }
 
 
-// Pass applicable uniform variables to array of PointLight objects to set the values of each
-void Shader::SetPointLights(PointLight* pLight, unsigned int lightCount)
+// Pass applicable uniform variables to array of PointLight objects to set the values of each in shader.frag
+void Shader::SetPointLights(PointLight* pLight, unsigned int lightCount, unsigned int textureUnit, unsigned int offset)
+
 {
 	if (lightCount > MAX_POINT_LIGHTS) 
 		lightCount = MAX_POINT_LIGHTS;	
@@ -373,11 +391,16 @@ void Shader::SetPointLights(PointLight* pLight, unsigned int lightCount)
 		pLight[i].UseLight(uniformPointLight[i].uniformAmbientIntensity, uniformPointLight[i].uniformColor,
 			uniformPointLight[i].uniformDiffuseIntensity, uniformPointLight[i].uniformPosition,
 			uniformPointLight[i].uniformConstant, uniformPointLight[i].uniformLinear, uniformPointLight[i].uniformExponent);
+
+		// shadow data
+		pLight[i].GetShadowMap()->Read(GL_TEXTURE0 + textureUnit + i);					 // pass correct shadow map texture
+		glUniform1i(uniformOmniShadowMap[i + offset].shadowMap, textureUnit + i);		 // nonzero offset is optional
+		glUniform1f(uniformOmniShadowMap[i + offset].farPlane, pLight[i].GetFarPlane()); // nonzero offset is optional
 	}
 }
 
-// Pass applicable uniform variables to array of SpotLight objects to set the values of each
-void Shader::SetSpotLights(SpotLight* sLight, unsigned int lightCount)
+// Pass applicable uniform variables to array of SpotLight objects to set the values of each in shader.frag
+void Shader::SetSpotLights(SpotLight* sLight, unsigned int lightCount, unsigned int textureUnit, unsigned int offset)
 {
 	if (lightCount > MAX_SPOT_LIGHTS) 
 		lightCount = MAX_SPOT_LIGHTS;	
@@ -390,6 +413,12 @@ void Shader::SetSpotLights(SpotLight* sLight, unsigned int lightCount)
 			uniformSpotLight[i].uniformDiffuseIntensity, uniformSpotLight[i].uniformPosition, uniformSpotLight[i].uniformDirection,
 			uniformSpotLight[i].uniformConstant, uniformSpotLight[i].uniformLinear, uniformSpotLight[i].uniformExponent,
 			uniformSpotLight[i].uniformEdge);
+
+		// shadow data
+		sLight[i].GetShadowMap()->Read(GL_TEXTURE0 + textureUnit + i);					 // pass correct shadow map texture
+		glUniform1i(uniformOmniShadowMap[i + offset].shadowMap, textureUnit + i);		 // nonzero offset is optional
+		glUniform1f(uniformOmniShadowMap[i + offset].farPlane, sLight[i].GetFarPlane()); // nonzero offset is optional
+
 	}
 
 }

@@ -274,6 +274,8 @@ void DirectionalShadowMapPass(DirectionalLight* light)
 	glm::mat4 lightTransform = light->CalculateLightTransform();
 	directionalShadowShader.SetDirectionalLightTransform(&lightTransform);	// assign uniformDirectionalLightTransform ID
 
+	directionalShadowShader.Validate();
+
 	RenderScene(); // Render scene from light's perspective
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -300,6 +302,8 @@ void OmniShadowMapPass(PointLight* light)
 
 	// Set light matrices for omni_shadow_map.geom
 	omniShadowShader.SetLightMatrices(light->CalculateLightTransform());
+
+	omniShadowShader.Validate();
 
 	RenderScene(); // Render scene from light's perspective
 
@@ -337,21 +341,23 @@ void RenderPass(glm::mat4 projectionMatrix, glm::mat4 viewMatrix)
 
 	// Set active lighting
 	shaderList[0].SetDirectionalLight(mainLight);
-	shaderList[0].SetPointLights(pointLights, pointLightCount);
-	shaderList[0].SetSpotLights(spotLights, spotLightCount);
+	// shift following to texture up one (to 3) to avoid any textures being set to 0, our "spare" texture
+	shaderList[0].SetPointLights(pointLights, pointLightCount, 3, 0);  // SetPointLights needs to occur before SetSpotLights due to light calc functions in shader.frag 
+	shaderList[0].SetSpotLights(spotLights, spotLightCount, 3 + pointLightCount, pointLightCount); // spotlights occupy consecutive indices after pointLights
 	glm::mat4 lightTransform = mainLight.CalculateLightTransform();
 	shaderList[0].SetDirectionalLightTransform(&lightTransform); // used in shader.vert to calculate fragment positions in relation to the directional light
 
 	// standard textures are unit 0, so set shadow map texture to unit 1
-	mainLight.GetShadowMap()->Read(GL_TEXTURE1); 
-	shaderList[0].SetTexture(0);
-	shaderList[0].SetDirectionalShadowMap(1);
+	mainLight.GetShadowMap()->Read(GL_TEXTURE2); // set to 2 to avoid 0... see below
+	shaderList[0].SetTexture(1);                 // set to 1 to avoid setting to 0 (0 will be unused "spare" texture)
+	shaderList[0].SetDirectionalShadowMap(2);    // see above
 
 	// Set "flashlight" slightly below camera to have more flashlight-like behavior 
 	glm::vec3 lowerLight = camera.getCameraPosition();
 	lowerLight.y -= 0.5f;
 	spotLights[0].SetFlash(lowerLight, camera.getCameraDirection());
 
+    shaderList[0].Validate();
 	RenderScene();
 }
 
@@ -391,23 +397,23 @@ int main()
 	// Set Lighting
 	mainLight = DirectionalLight(4096, 4096,			// resolution of shadow map
 								1.0f, 1.0f, 1.0f,		// colors
-								0.1f, 0.6f,				// ambient & diffuse intensities 
+								0.0f, 0.0f,				// ambient & diffuse intensities 
 								0.0f, -15.0f, -10.0f);	// direction light is shining
 
 	pointLights[0] = PointLight(1024, 1024,				// resolution of shadow map
 								0.01f, 100.0f,			// near and far plane distance
 								0.0f, 0.0f, 1.0f,		// rgb color values
-								0.0f, 0.1f,				// ambient and directional light intensity
-								0.0f, 0.0f, 0.0f,		// position of light source
-								0.3f, 0.2f, 0.1f);		// attenuation factors (strength of light over distance)
+								0.0f, 0.4f,				// ambient and directional light intensity
+								2.0f, 2.0f, 0.0f,		// position of light source
+								0.3f, 0.1f, 0.1f);		// attenuation factors (strength of light over distance)
 	pointLightCount++;
 
 	pointLights[1] = PointLight(1024, 1024,				// resolution of shadow map
 								0.01f, 100.0f,			// near and far plane distance
 								0.0f, 1.0f, 0.0f,		// rgb color values
-								0.0f, 0.1f,				// ambient and directional light intensity
-								-4.0f, 2.0f, 0.0f,		// position of light source
-								0.3f, 0.2f, 0.1f);		// attenuation factors (strength of light over distance)
+								0.0f, 0.4f,				// ambient and directional light intensity
+								-2.0f, 2.0f, 0.0f,		// position of light source
+								0.3f, 0.1f, 0.1f);		// attenuation factors (strength of light over distance)
 	pointLightCount++;
 
 	spotLights[0] = SpotLight(1024, 1024,				// resolution of shadow map
@@ -418,7 +424,7 @@ int main()
 								0.0f, -1.0f, 0.0f,		// direction of light rays
 								1.0f, 0.0f, 0.0f,		// attenuation factors (strength of light over distance				
 								20.0f);					// angle of light focus
-		spotLightCount++;
+	spotLightCount++;
 
 	spotLights[1] = SpotLight(1024, 1024,				// resolution of shadow map
 								0.01f, 100.0f,			// near and far plane distance
@@ -428,7 +434,7 @@ int main()
 								-100.0f, -1.0f, 0.0f,	// direction of light rays
 								1.0f, 0.0f, 0.0f,		// attenuation factors (strength of light over distance				
 								20.0f);					// angle of light focus
-		spotLightCount++;
+	spotLightCount++;
 
 
 	// initial camera values
@@ -442,7 +448,7 @@ int main()
 	// projection matrix doesn't change
 	glm::mat4 projection = glm::perspective(
 		glm::radians(60.0f), // fov from top to bottom
-		mainWindow.getBufferWidth() / (GLfloat)mainWindow.getBufferHeight(), // aspect ratio
+		(GLfloat)mainWindow.getBufferWidth() / (GLfloat)mainWindow.getBufferHeight(), // aspect ratio
 		0.1f, // near z
 		100.0f); // far z
 
@@ -458,6 +464,12 @@ int main()
 		glfwPollEvents();
 		camera.keyControl(mainWindow.getKeys(), deltaTime);
 		camera.mouseControl(mainWindow.getXChange(), mainWindow.getYChange());
+
+		if (mainWindow.getKeys()[GLFW_KEY_L])
+		{
+			spotLights[0].Toggle();
+			mainWindow.getKeys()[GLFW_KEY_L] = false;
+		}
 
 		DirectionalShadowMapPass(&mainLight); // render scene to shadow map frame buffer
 		for (size_t i = 0; i < pointLightCount; i++)

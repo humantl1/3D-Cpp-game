@@ -75,7 +75,7 @@ bool Texture::LoadTextureA()
 
 void Texture::UseTexture()
 {
-	glActiveTexture(GL_TEXTURE0);
+	glActiveTexture(GL_TEXTURE1); // set to one to avoid unused textures being assigned to 0, and thus to both texture 2D and cube maps
 	glBindTexture(GL_TEXTURE_2D, textureID);
 }
 

@@ -42,11 +42,11 @@ bool OmniShadowMap::Init(GLuint width, GLuint height)
 	}
 
 // 4.
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);			// set mipmap minifying function to linear
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);			// set mipmap magnifying function to linear
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);		// clamp value to edge, not border, since light is omnidirectional and covers every direction 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);		// clamp value to edge, not border, since light is omnidirectional and covers every direction 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);		// R represents Z axis, helps with corners and edges
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);			// set mipmap minifying function to linear
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);			// set mipmap magnifying function to linear
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);		// clamp value to edge, not border, since light is omnidirectional and covers every direction 
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);		// clamp value to edge, not border, since light is omnidirectional and covers every direction 
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);		// R represents Z axis, helps with corners and edges
 
 // 5.
 	glBindFramebuffer(GL_FRAMEBUFFER, FBO);										// set FBO as active frame buffer 

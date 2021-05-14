@@ -23,10 +23,15 @@ public:
 
     void SetFlash(glm::vec3 pos, glm::vec3 dir); // set spotlight to position and direction
 
+    inline void Toggle() { isOn = !isOn; }
+
     ~SpotLight();
 
 private:
     glm::vec3 direction; // direction light is pointing
+
     GLfloat edge, procEdge; // angle of light boundary (raw value , cos in radians)
+
+    bool isOn;
 };
 

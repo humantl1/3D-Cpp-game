@@ -24,6 +24,7 @@
 #include "SpotLight.h"
 #include "Material.h"
 #include "Model.h"
+#include "Skybox.h"
 
 const float toRadians = 3.14159265f / 180.0f;
 
@@ -48,6 +49,8 @@ Model asteroid2;
 DirectionalLight mainLight;
 PointLight pointLights[MAX_POINT_LIGHTS];
 SpotLight spotLights[MAX_SPOT_LIGHTS];
+
+Skybox skybox;
 
 unsigned int pointLightCount = 0;
 unsigned int spotLightCount = 0;
@@ -315,7 +318,17 @@ void OmniShadowMapPass(PointLight* light)
 *  1. 
 */
 void RenderPass(glm::mat4 projectionMatrix, glm::mat4 viewMatrix)
-{
+{	
+	glViewport(0, 0, 1366, 768); // TODO: viewport function
+
+	// Clear window
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the color and depth buffers
+
+	// Draw skybox
+	skybox.DrawSkybox(viewMatrix, projectionMatrix);
+
+	// Draw scene
 	shaderList[0].UseShader();	
 	
 	// assign uniform handles
@@ -325,13 +338,6 @@ void RenderPass(glm::mat4 projectionMatrix, glm::mat4 viewMatrix)
 	uniformEyePosition = shaderList[0].GetEyePositionLocation();
 	uniformSpecularIntensity = shaderList[0].GetSpecularIntensityLocation();
 	uniformShininess = shaderList[0].GetShininessLocation();
-
-	glViewport(0, 0, 1366, 768); // TODO: viewport function
-
-	// Clear window
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the color and depth buffers
-
 
 	// Set "universal" uniforms (projection, view, and eye position apply to entire scene)
 	glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(projectionMatrix)); // pass projection matrix to shader program
@@ -397,8 +403,8 @@ int main()
 	// Set Lighting
 	mainLight = DirectionalLight(4096, 4096,			// resolution of shadow map
 								1.0f, 1.0f, 1.0f,		// colors
-								0.0f, 0.0f,				// ambient & diffuse intensities 
-								0.0f, -15.0f, -10.0f);	// direction light is shining
+								0.0f, 0.5f,				// ambient & diffuse intensities 
+								5.0f, -15.0f, -10.0f);	// direction light is shining
 
 	pointLights[0] = PointLight(1024, 1024,				// resolution of shadow map
 								0.01f, 100.0f,			// near and far plane distance
@@ -411,9 +417,9 @@ int main()
 	pointLights[1] = PointLight(1024, 1024,				// resolution of shadow map
 								0.01f, 100.0f,			// near and far plane distance
 								0.0f, 1.0f, 0.0f,		// rgb color values
-								0.0f, 0.4f,				// ambient and directional light intensity
-								-2.0f, 2.0f, 0.0f,		// position of light source
-								0.3f, 0.1f, 0.1f);		// attenuation factors (strength of light over distance)
+								0.0f, 0.1f,				// ambient and directional light intensity
+								-4.0f, 2.0f, 0.0f,		// position of light source
+								0.3f, 0.2f, 0.1f);		// attenuation factors (strength of light over distance)
 	pointLightCount++;
 
 	spotLights[0] = SpotLight(1024, 1024,				// resolution of shadow map
@@ -436,6 +442,17 @@ int main()
 								20.0f);					// angle of light focus
 	spotLightCount++;
 
+	// Initialize array of skybox faces in explicit order: +x, -x, +y, -y, +z, -z
+	std::vector<std::string> skyboxFaces;	
+	skyboxFaces.push_back("Textures/Skybox/moonwaw_lf.tga");
+	skyboxFaces.push_back("Textures/Skybox/moonwaw_rt.tga");
+	skyboxFaces.push_back("Textures/Skybox/moonwaw_up.tga");
+	skyboxFaces.push_back("Textures/Skybox/moonwaw_dn.tga");
+	skyboxFaces.push_back("Textures/Skybox/moonwaw_ft.tga");
+	skyboxFaces.push_back("Textures/Skybox/moonwaw_bk.tga");
+
+
+	skybox = Skybox(skyboxFaces);
 
 	// initial camera values
 	camera = Camera(glm::vec3(0.0f, 0.0f, 0.0f),	// Camera start position

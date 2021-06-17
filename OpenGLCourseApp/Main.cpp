@@ -62,7 +62,7 @@ GLfloat asteroidAngle = 0.0f;
 
 std::vector<Mesh*> meshList;
 
-std::vector<Shader> shaderList;
+std::vector<Shader> shaderList; // potentially allows multiple rendering shaders
 Shader directionalShadowShader;
 Shader omniShadowShader;
 
@@ -110,9 +110,14 @@ void calcAverageNormals(unsigned int* indices, // array of indices
 	}
 }
 
+// For demonstration of coding 3D image from scratch
+// Manually define pyramid object and floor plane
 void CreateObjects()
 {
 	// Pyramids:
+
+	// Indices refer to each unique vertex of the pyramid
+	// Since each vertex is used by 3 adjoining faces, this elimates redundacy
 	unsigned int indices[] = 
 	{
 		0, 3, 1, // left triangle
@@ -121,6 +126,10 @@ void CreateObjects()
 		0, 1, 2  // bottom triangle
 	};
 
+	// Each unique vertex that composes a pyramid
+	// Expanded to consist of positional, texture, and normal data
+	// Although a 1D array, each line is referenced from the start of the line via the
+	// Vertex Attribute Pointers in Mesh.cpp
 	GLfloat vertices[] = 
 	{
 		// x     y     z		 u     v		     normals
@@ -130,7 +139,7 @@ void CreateObjects()
 		0.0f, 1.0f, 0.0f,		0.5f, 1.0f,		0.0f, 0.0f, 0.0f		// top 
 	};
 
-	// Floor:
+	// Floor plane:
 	unsigned int floorIndices[] =
 	{
 		0, 2, 1, // back left triangle
@@ -164,12 +173,16 @@ void CreateObjects()
 	meshList.push_back(obj3);
 } 
 
+// Initialize shaders from files (main shader, directional shadow shader, omni shadow shader)
 void CreateShaders()
 {
+	// Initialize main shader and add to shaderList
+	// Potentially allows for multiple draw shaders
 	Shader* shader1 = new Shader();
 	shader1->CreateFromFiles(vShader, fShader);
 	shaderList.push_back(*shader1);
 
+	// Shadow shaders
 	directionalShadowShader = Shader();
 	directionalShadowShader.CreateFromFiles("Shaders/directional_shadow_map.vert", "Shaders/directional_shadow_map.frag");
 	omniShadowShader = Shader();
@@ -179,25 +192,28 @@ void CreateShaders()
 
 // Render passes
 
+// Draw objects to screen
+/* General Object Rendering Procedure:
+*  1. Initialize 4x4 identity matrix using GLM 
+*  2. Add rotation
+*  3. Add translation
+*  4. Add scaling
+*  5. Pass GLM matrix to shader
+*  6. Initialize texture to use
+*  7. Initialize material to use
+*  8. Render mesh or model
+*/
 void RenderScene()
 {
-
-		// Render Objects:
-
 		// triangle 1
-		// Initialize transformation matrix from triOffset.
 		glm::mat4 model(1.0f); // initialize simple 4x4 identity matrix using GLM
-		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -2.5f)); // glm function builds matrix to translate in direction and magnitude of vector
-
-		// Examples of rotate and scale matrices
-		//model = glm::rotate(model, curAngle * toRadians, glm::vec3(0.0f, 1.0f, 0.0f)); // (matrix, angle of rotation, axis of rotation). This must concatenate the previous matrix
-		//model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f)); // (matrix, (scale coordinates))
+		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -2.5f));
 
 		// pass the model matrix initialized above to shader program
 		glUniformMatrix4fv(uniformModel, // location of matrix in shader
-			1, // number of matrices to pass(?)
-			GL_FALSE, // transpose matrix?
-			glm::value_ptr(model)); // matrix to pass to shader matrix
+			1,							 // number of matrices to pass(?)
+			GL_FALSE,					 // transpose matrix?
+			glm::value_ptr(model));		 // matrix to pass to shader matrix
 
 		rockTexture.UseTexture();
 		shinyMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
@@ -250,11 +266,9 @@ void RenderScene()
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 		shinyMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
 		asteroid2.RenderModel();
-
-		// End Object Rendering.
 }
 
-/* Draw to shadow map
+/* Draw to directional shadow map
 *  Procedure:
 *  1. Set directional shadow shader as active
 *  2. Set viewport to framebuffer dimensions (seems funny this isn't the other way around, huh?)
@@ -265,72 +279,109 @@ void RenderScene()
 */
 void DirectionalShadowMapPass(DirectionalLight* light)
 {
+// 1.
 	directionalShadowShader.UseShader();
 
+// 2.
 	// set viewport to same dimensions as framebuffer
 	glViewport(0, 0, light->GetShadowMap()->GetShadowWidth(), light->GetShadowMap()->GetShadowHeight()); 
 
+// 3.
 	light->GetShadowMap()->Write();		// bind FBO framebuffer
 	glClear(GL_DEPTH_BUFFER_BIT);		// clear any previous depth buffer data
 
-	uniformModel = directionalShadowShader.GetModelLocation();									// assign uniformModel shader ID
+// 4.
+	uniformModel = directionalShadowShader.GetModelLocation();				// assign uniformModel shader ID
 	glm::mat4 lightTransform = light->CalculateLightTransform();
 	directionalShadowShader.SetDirectionalLightTransform(&lightTransform);	// assign uniformDirectionalLightTransform ID
 
+// 5.
 	directionalShadowShader.Validate();
-
 	RenderScene(); // Render scene from light's perspective
 
+// 6.
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+/* Draw to omni shadow map
+*  Procedure:
+*  1. Set directional shadow shader as active
+*  2. Set viewport to framebuffer dimensions
+*  3. Set FBO as framebuffer and clear old data
+*  4. Assign the omni_shadow_map.vert and .frag uniform IDs
+*  5. Pass light position and far plane light reaches
+*  6. Assign uniforms for each face of cube map used for omni-directional shadows
+*  7. Render the scene (from the perspective of a light)
+*  8. Rebind the default framebuffer for writing to the screen
+*/
 void OmniShadowMapPass(PointLight* light)
 {
+// 1.
 	omniShadowShader.UseShader();
 
+// 2.
 	// set viewport to same dimensions as framebuffer
 	glViewport(0, 0, light->GetShadowMap()->GetShadowWidth(), light->GetShadowMap()->GetShadowHeight()); 
 
+// 3.
 	light->GetShadowMap()->Write();		// bind FBO framebuffer
 	glClear(GL_DEPTH_BUFFER_BIT);		// clear any previous depth buffer data
 
+// 4.
 	// set shader uniform IDs
 	uniformModel = omniShadowShader.GetModelLocation();					// in omni_shadow_map.vert
 	uniformOmniLightPos = omniShadowShader.GetOmniLightPosLocation();	// in omni_shadow_map.frag 
 	uniformFarPlane = omniShadowShader.GetFarPlaneLocation();			// in omni_shadow_map.frag 
 
+// 5.
 	// Pass light position and far plane distance into omni_shadow_map.frag
 	glUniform3f(uniformOmniLightPos, light->GetPosition().x, light->GetPosition().y, light->GetPosition().z);
 	glUniform1f(uniformFarPlane, light->GetFarPlane());
 
+// 6.
 	// Set light matrices for omni_shadow_map.geom
 	omniShadowShader.SetLightMatrices(light->CalculateLightTransform());
 
+// 7.
 	omniShadowShader.Validate();
-
 	RenderScene(); // Render scene from light's perspective
 
+// 8.
 	glBindFramebuffer(GL_FRAMEBUFFER, 0); // rebind default frame buffer for drawing to screen
 }
 
 /* Draw to screen frame buffer
 *  Procedure:
-*  1. 
+*  1. Define viewport dimensions
+*  2. Clear window
+*  3. Draw skybox
+*  4. Select active shader
+*  5. Assign uniforms
+*  6. Initialize universal uniforms (projection, camera, and eye position) 
+*  7. Set Lighting
+*  8. Set Shadows
+*  9. Set Flashlight
+* 10. Draw Scene
 */
 void RenderPass(glm::mat4 projectionMatrix, glm::mat4 viewMatrix)
 {	
+// 1.
 	glViewport(0, 0, 1366, 768); // TODO: viewport function
 
+// 2.
 	// Clear window
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the color and depth buffers
 
+// 3.
 	// Draw skybox
 	skybox.DrawSkybox(viewMatrix, projectionMatrix);
 
-	// Draw scene
+// 4. 
+	// Indicate which shader to use
 	shaderList[0].UseShader();	
 	
+// 5.
 	// assign uniform handles
 	uniformModel = shaderList[0].GetModelLocation();
 	uniformProjection = shaderList[0].GetProjectionLocation();
@@ -339,30 +390,35 @@ void RenderPass(glm::mat4 projectionMatrix, glm::mat4 viewMatrix)
 	uniformSpecularIntensity = shaderList[0].GetSpecularIntensityLocation();
 	uniformShininess = shaderList[0].GetShininessLocation();
 
+// 6.
 	// Set "universal" uniforms (projection, view, and eye position apply to entire scene)
 	glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(projectionMatrix)); // pass projection matrix to shader program
 	glUniformMatrix4fv(uniformView, 1, GL_FALSE, glm::value_ptr(viewMatrix)); // pass camera matrix to shader program
 	glUniform3f(uniformEyePosition, camera.getCameraPosition().x, camera.getCameraPosition().y, camera.getCameraPosition().z);
 
-
+// 7. 
 	// Set active lighting
 	shaderList[0].SetDirectionalLight(mainLight);
-	// shift following to texture up one (to 3) to avoid any textures being set to 0, our "spare" texture
+	// shift following light textures up one (to 3) to avoid any textures being set to 0, the "spare" texture
 	shaderList[0].SetPointLights(pointLights, pointLightCount, 3, 0);  // SetPointLights needs to occur before SetSpotLights due to light calc functions in shader.frag 
 	shaderList[0].SetSpotLights(spotLights, spotLightCount, 3 + pointLightCount, pointLightCount); // spotlights occupy consecutive indices after pointLights
 	glm::mat4 lightTransform = mainLight.CalculateLightTransform();
 	shaderList[0].SetDirectionalLightTransform(&lightTransform); // used in shader.vert to calculate fragment positions in relation to the directional light
 
+// 8. 
 	// standard textures are unit 0, so set shadow map texture to unit 1
 	mainLight.GetShadowMap()->Read(GL_TEXTURE2); // set to 2 to avoid 0... see below
 	shaderList[0].SetTexture(1);                 // set to 1 to avoid setting to 0 (0 will be unused "spare" texture)
 	shaderList[0].SetDirectionalShadowMap(2);    // see above
 
+// 9.
 	// Set "flashlight" slightly below camera to have more flashlight-like behavior 
 	glm::vec3 lowerLight = camera.getCameraPosition();
 	lowerLight.y -= 0.5f;
 	spotLights[0].SetFlash(lowerLight, camera.getCameraDirection());
 
+// 10.
+	// Draw scene
     shaderList[0].Validate();
 	RenderScene();
 }
@@ -376,15 +432,12 @@ int main()
 	CreateObjects();
 	CreateShaders();
 
-
 	// Set Textures
  	rockTexture = Texture((char*)"Textures/rock.png");
 	rockTexture.LoadTexture();
 	asteroidTexture = Texture((char*)"Textures/asteroid.png");
 	asteroidTexture.LoadTexture();
  
-
-
 	// Set Materials
 	shinyMaterial = Material(1.0f, 256);
 	dullMaterial = Material(0.3f, 4);
@@ -488,6 +541,7 @@ int main()
 			mainWindow.getKeys()[GLFW_KEY_L] = false;
 		}
 
+		// Get shadows
 		DirectionalShadowMapPass(&mainLight); // render scene to shadow map frame buffer
 		for (size_t i = 0; i < pointLightCount; i++)
 		{
@@ -498,6 +552,7 @@ int main()
 			OmniShadowMapPass(&spotLights[i]);
 		}
 
+		// Draw to screen
 		RenderPass(projection, camera.calculateViewMatrix());
 
 		glUseProgram(0);

@@ -1,24 +1,22 @@
 #version 330														
 					
-// In Variables
+// Data in from vertex shader 
 in vec4 vColor;														
 in vec2 TexCoord;
 in vec3 Normal;
 in vec3 FragPos;
 in vec4 DirectionalLightSpacePos;
 
-
 // Out Variables
 out vec4 color;														
-
 
 // Constants
 const int MAX_POINT_LIGHTS = 3;
 const int MAX_SPOT_LIGHTS = 3;
 
-
 // Data Structs 
-struct Light
+
+struct Light // base class
 {
 	vec3 color;
 	float ambientIntensity;

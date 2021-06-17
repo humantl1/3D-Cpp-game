@@ -1,0 +1,55 @@
+Tim Benton
+3D Game Architecture
+Spring, 2021
+Self_Reflection
+
+  In this Game Architecture ILC I programmed a 3D graphics engine to be used in a PC game. The graphics engine implements manually defined primitives;
+texture and model importing; directional, point, and spot lights; Phong lighting; Phong shading; directional and omnidirectional shadow maps; and
+cube maps. I used the OpenGL, GLFW, GLEW, GLM, Assimp, and stb_image libraries for extended functionality. Additionally, I used online text and video
+tutorials, as well as library documentation, extensively in order to learn how to construct the graphics engine. My original intention had been to
+program an entire game using C++. I soon concluded that even a moderately robust graphics engine was worth investing a quarter of study into. My
+learning gains during this ILC have validated that assumption.
+  During the previous quarter I had studied linear algebra in respect to computer graphics. This Game Architecture ILC allowed me to reinforce my
+that learning using practical application. Matrix transformations and translations were necessary throughout the shader code. Some of this was
+handled internally by OpenGL, such as the processing of camera space positions in the vertex shader to clip space positions in the fragment shader
+via the built-in "gl_position" data structure. Most other times transformation and translations had to be explicitly called such as concatenating
+model, view, and projection matrices onto local space positions to pass into gl_position. The dot product was also a very useful function that I had
+several opportunities to use, such as calculating the difference of the angle of reflection off of a surface normal to the viewer's eye in order to
+implement specular lighting. Understanding both orthographic and perspective projections was also useful, as directional lighting casts orthographic
+shadows, but point lights cast omnidirectional perspective shadows. Practicing concepts such as these in a practical way was one of my main goals for
+this ILC, and I am glad I had many opportunities to do so.
+  While reinforcing previously learned concepts was useful, most of my time was spent learning and implementing new skills. Put succinctly, I had to
+learn to take a simple vertex position and color and process it from start to finish into a pixel representing a point in 3D space displayed on the
+screen. This is much more effectively demonstrated in my code rather than descriptively. However, for the sake of completeness, here is a brief
+summary. A vertex's position, color or texture position, and normalized normal is passed into the vertex shader. This data is then converted to clip
+space data which maps to pixels on the screen. Separately, the scene is rendered from the point of view of each directional light source in order to
+determine which vertices a light hits first, which separates illuminated pixels from non-illuminated pixels. Also separately, the scene is rendered
+on top of a skybox cube map, in order to simulate a background that shows when no other object is present in line with that pixel location. All of this
+data is used in the fragment shader to calculate the color of each pixel that will be rendered to the screen. Lighting magnifies the color of a pixel
+while shadows decrease the color. There are, of course, many calculations that go into this, which is what shaders are coded to perform.
+  I was, on the whole, able to conceptualize this rendering process. For me, the most difficult aspect of the project was the OpenGL paradigm itself.
+I had never worked with code that had to define and pass aliases for any data that communicated between different parts of a program - in this case,
+the C++ code and the OpenGL shaders. It took me some time to understand what was happening and why it was necessary, beyond tutorials and the
+documentation stating that it was. In the end, I realized that OpenGL has its own abstraction of GPU memory and its own data structures that do not
+necessarily mirror C++'s more literal representation of memory. In fact, OpenGL's representations are extremely specific to graphical output. While
+that is definitely understandable, and perhaps obvious, it is not at all intuitive into how that will be implemented. Though challenging, learning this
+was useful in at least two ways: one was realizing that different languages and applications may have entirely different ways of representing data. The
+other, and perhaps most important, was learning to use documentation to understand foreign concepts and derive meaning and usage from them. While
+frustrating at times, I am glad I had the opportunity to confront this shift in paradigms.
+  Lastly, I had the opportunity to synthesize concepts learned in this ILC with concepts in my other course. A concrete example of this is the concept
+of a cube map which is used to implement both omni-directional shadows and skyboxes. For the final project of my Algorithms course I needed vector
+positions in a spherical pattern that could be uniquely generated without collision checks. I also needed to easily reference groupings of these
+positions based on their vectors. Additionally, I needed them to be performant, as there would be up to a thousand child nodes per parent, with
+potentially tens of thousands of parent nodes. By enclosing an origin around a conceptual cube map and using each grid of the cube faces as a unique
+location, I solved my first problem. The fact that the cube is composed of faces meant I had six grouping of positions that could be easily referenced.
+By initialization all of the cube map positions into an array at the program start, and then simply adding these positions to any node in world space
+during runtime, I eliminated the need to generate vector positions after program initialization, which solved my final problem. This demonstrates my
+ability to take disparate problems and find interrelated solutions. Although I may never need to construct a graphics engine using OpenGL again, this
+last point poignantly illustrates why it was useful to do so in the first place
+
+
+
+
+
+
+

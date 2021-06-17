@@ -1,0 +1,190 @@
+Tim Benton
+3D Game Architecture
+Spring, 2021
+Weekly Summaries
+
+Week 1 : Project Setup
+- Research tools necessary to implement a program using Windows and graphics cards
+- Implement git on local machine, sync with remote repo
+- Setup GLFW to interface with Windows windows events and handle user input
+- Setup GLEW to interface with OpenGL and Windows
+
+Week 2 : Shaders and Transformations
+- Research the rendering pipeline in terms of OpenGL
+- Research shaders and GLSL in OpenGL
+- Research the vertex and fragment shader (primary user-defined shaders)
+- Research VAOs and VBOs, and IBOs
+  - VAO (Vertex Array Object) defines what data a vertex has
+  - VBO (Vertex Buffer Object) defines the specific data a vertex contains
+- Research binding OpenGL objects with names and OpenGL variables with uniform IDs
+  - Objects need names the main program can use to refer to memory in the GPU
+  - Variables that pass between OpenGL and CPP program need are called "uniforms" and
+    need an ID to pass to and from a shader
+- Code basic vertex and fragment shaders as strings
+- Hardcode triangle object
+- Code basic rendering loop
+
+Week 3 : Shaders and Transformations cont.
+- Research and experiment with rendering interpolation
+- Research indexed draws (IBOs)
+  - IBO (Index Buffer Object aka Vertex Array Indices) "name" unique vertices
+- Refresh on rendering projections
+  - Local space -> world space -> view space -> clip space -> screen space
+    - local space: positions relative to object's origin
+    - world space: positions relative to world origin
+    - view space:  positions relative to camera position and orientation
+    - clip space:  projected positions (either orthographic or perspective) in viewable area
+    - screen space: positions in terms of view window
+- Code OpenGL mesh using VAOs, VBOs, and IBOs
+- Code very simple vertex and fragment shaders in text files
+- Program code necessary to compile shaders and pass uniform IDs
+- Code tranformations and projections on objects
+- Break code into multiple classes
+
+Week 4 : Camera Movement
+- Research GLFW input handling
+- Refresh translations necessary to move camera
+- Code simple user input system
+- Code delta time to smooth camera movement
+- Use user input and delta time to move camera in scene
+
+Week 5 : Texture Importing, Phong Lighting: Directional Lighting: Ambient
+- Fragment: a fragment holds the data necessary to calculate a pixel color
+- Research textures
+  - composed of "texels" as opposed to pixels, range of [0, 1]
+  - map specified texels to vertices and interpolate to assign non-specific texels
+  - "mipmaps" reduce resolution in relation to distance to conserve data transfer
+  - OpenGL provides 'nearest' and 'linear' filters for interpolating off-centered texels
+    - nearest: project texel with most overlap to screen pixel (pixelated effect)
+    - linear: use weighted average of surrounding texels to project to pixel (blend/blurred effect)
+  - points outside of texel range must be accomodated with border(wrap) parameters
+  - textures are accessed via 'samplers' in OpenGL
+    - OpenGL handles the texel interpolation
+- Research image loader library to handle textures
+  - use stb_image (easy integration (only header file) and implementation)
+- Research Phong Lighting
+  - Consists of 3 parts: ambient, diffuse, and specular
+    - ambient: applies equally to entire scene
+    - diffuse: determined by direction to light source, fades over distance
+    - specular: determined by angle of light's reflection to viewer's eye
+  - In essence: ambient, diffuse, and specular are factors of the color of a fragment
+    - this determines how much color of a fragment is shown, this is the function of lighting
+- Research Directional lighting
+  - all lighting is from the same direction (an orthographic projection)
+  - only fragment color, phong lighting calcs, and a lighting direction is necessary
+- Code texture mapping (use stbi_load to load texture, then assign necessary OpenGL parameters)
+- Code ambient lighting class and calculate in shader
+
+Week 6 : Phong Lighting: Directional Lighting: Diffuse & Specular, Phong Shading
+- Research diffuse lighting
+  - the angle of an object face is a factor in determining magnitude of diffuse lighting
+    - by normalizing the surface normal of the object face and the vector to the light source
+      the dot product theta value gives the cosine of the angle between the face and light source
+      - this cosine can be used as a factor of the magnitude of diffuse lighting
+      - negative theta indicates light is behind face, so no lighting occurs
+  - Phong shading: to calculate surface normals of complex faces the normals between vertices are interpolated
+    - can cause obvious problems for simple objects with flat faces
+    - works well for complex objects
+  - Non-uniform scaling skews an object's surface normal
+    - this is fixed by multiplying the normal by the transposed the inverse matrix
+      - I conceptualize this as stretching a triangle by one vertex and then copying this distorted triangle
+        - then taking the copy and mirroring and rotating it so that the faces point the same direction as the original
+          and then averaging the normals of the corresponding faces of the triangles
+- Research specular lighting
+  - conceptually, this is the billiards problem of lighting
+  - the reflection of the light source around the surface normal of an object is calculated (GLSL handles this)
+    - then, the angle between this reflection and the viewer's eyes is calculated via the dot product
+    - the smaller the angle, the more directly the reflection hits the eye, and the brighter the specular lighting
+  - there is also a shininess exponent involved in specular lighting, which is a function of how concentrated the specular lighting is
+- Code diffuse lighting class and add calculations to shader
+- code specular lighting class and add calculations to shader
+
+Week 7 : Point & Spot Lights, Model Importing
+- Research point lights
+  - Point lights have a position in space, and lighting is emitted in all directions
+  - So the vector between the light source and fragment must be calculaterd
+  - Distance effects lighting intensity
+    - Intesity over distance is calculated using the reciprocal of a quadratic function
+      - this simulates how light initially fades quickly over distance, and then gradually drops off
+      - consisting of 3 terms, achieving desired effects is complicated as the terms are interrelated
+- Research spot lights
+  - Spot lights have a position in space, and the lighting is emitted directionally
+  - Similar to point lights, light attenuates over distance
+  - However, there is a cut-off angle of the light
+    - if this is implemented naively a unnatural hard lighting edge is created 
+    - to remedy this, further calculations are required:
+      - Use the dot product cosine of the light's angle to the fragment to scale the lighting magnitude
+      - Because the edge of the lighting is where the intensity scaling needs to occure to diffuse the edges of the light
+        it is necessary to scale the dot product to the range [0, 1] since the cosine of low angles doesn't vary much
+- Research model importing
+  - to handle the importing of models use an importing library
+  - Assimp is straightforward and simple
+  - models essentially consist of vector data, so it is possible to code a custom implementation
+    - however, it is time consuming to handle all of the different asset file formats
+- Code point light class and shader calculations
+- Code spot light class and shader calculations
+- Import Assimp library and model class
+
+Week 8 : Directional Shadow Maps
+- Research shadow maps
+  - shadow map is held in a 2D texture (sampler2D in OpenGL shader)
+  - map is created using a framebuffer, which writes to the texture
+  - this creates the need for an extra rendering pass: one to draw to screen, the other for shadow map
+  - on shadow map pass the scene is "rendered" from the perspective of a light source
+    - so really, the shadow map is a misnomer, it is actually a light map
+    - instead of the rendering output being a color, shadow map rendering outputs depth values
+  - since the shadow map is "rendered" a separate shadow map vertex shader is needed
+    - this renders the scene from the perspective of a directional light
+      - the view matrix for the directional shadow map is the direction of the light
+      - because the directional light does not project out from a point in space, it projects orthographically
+  - after rendering the shadow map, the shadow map texture is bound to the main shader for use rendering to the screen
+  - the shadow map view matrix is used to get a fragment's position in relation to a light source
+  - to use shadow map coordinates they must be converted to normalized device coordinate in the range [0, 1]
+    - this is what OpenGL automatically does when transfering positions to the fragment shader
+    - but for the shadow map it must be done manually
+      - the formula for this is the vector divide by the w component, then scaled to the range [0, 1] which is the texture range
+      - the depth of the shadow map can be compared to the fragment z position to determine if the current fragment is in shadow
+  - there is a phenomenon known as "shadow acne" where two pixel are represeneted by one texel in the shadow map
+    - this creates a zebra-like pattern when rendered
+    - to remedy, everything is given a slight bias toard the camera to "fake" a closer depth
+  - to keep shadow edges from being pixelated (since they are rendered from a texture which is a series of square texels)
+    - Percentage Closer Filtering (PCF) is used, which samples a fragments surrounding fragments and takes the average depth value
+- code directional shadow map class
+- code directional shadow map shaders
+- add necessary calculations to main fragment shader
+
+Week 9 : Omnidirectional Shadow Maps
+- Research cube maps 
+  - because point and spot lights cast shadows in every direction, a single shadow map texture will not work
+    - one solution is to use a cube map, which is a series of 6 texture layers conceptually arranged as a cube
+    - the cube is centered on a light source, and any position on the cube can be referenced by using a directional
+      vector from the center of the cube
+    - each side of the cube has its own projection view matrix, as opposed to an orthographic matrix for directional shadow maps
+- Research geometry shader
+  - geometry shader handles groups of vertices, so primitives
+  - can create new primitives as well as manipulating existing groups of vertices
+  - it works by essentially taking in consecutive vertices up to a set number and then storing them as a group into a primitive
+    - its kind of like a cookie cutter assembly line
+  - relevant to cube maps: the geometry shader can output to a specific OpenGL layer
+    - so, primitives can be output to any layer of a cube map all in one pass
+      - the alternative would be to do six separate render passes, one for each shadow map layer (direction)
+- code omnidirectional shadow map class
+- code omnidirectional shaders including a geometry shader
+- add necessary calculations to main fragment shader
+
+Week 10 : Skybox
+- Research skyboxes
+  - Skyboxes are used to represent distant landscape/imagery that can't moved closer to
+  - this is done, ironically, using a tiny 1x1x1 fixed cube around the camera 
+  - the skybox has its own render pass
+    - this works by disabling the depthmask for the skybox render
+      - this has the effect of effectively making the skybox as having infinite depth
+      - so any fragment is rendered in front of the skybox and the skybox can only be seen in otherwise empty space
+    - the camera is treated as the origin of the skybox, and the skybox needs to remain centered on the camera
+      - so the skybox must not move with the rest of the world around the camera
+        - to accomplish this, the view matrix globally used by the scene is truncated to a 3D matrix and then expanded to 4D 
+  - Skyboxes can be found online in different formats
+    - for this project I only used skyboxes in formats of six images that "fold" to form the box
+- code skybox class
+- code skybox shaders
+

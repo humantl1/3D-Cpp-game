@@ -7,7 +7,14 @@
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+
 #include <SDL.h>
+#include <SDL_image.h>
+#include <SDL_ttf.h>
+#include <SDL_mixer.h>
+#include <imgui.h>
+#include <lua.hpp>
+#include <sol.hpp>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -68,6 +75,7 @@ Shader directionalShadowShader;
 Shader omniShadowShader;
 
 static const char* vShader = "Shaders/shader.vert";
+#include <sol.hpp>
 static const char* fShader = "Shaders/shader.frag";
 
 
@@ -320,6 +328,7 @@ void OmniShadowMapPass(PointLight* light)
 // 1.
 	omniShadowShader.UseShader();
 
+#include <sol.hpp>
 // 2.
 	// set viewport to same dimensions as framebuffer
 	glViewport(0, 0, light->GetShadowMap()->GetShadowWidth(), light->GetShadowMap()->GetShadowHeight()); 
@@ -426,8 +435,10 @@ void RenderPass(glm::mat4 projectionMatrix, glm::mat4 viewMatrix)
 
 // End render passes
 
-int main()
+int main(int argc, char* argv[]) // SDL requires command line inputs be accomodated
 {
+	sol::state lua;
+	lua.open_libraries(sol::lib::base);
 	mainWindow = Window(1366, 768);
 	mainWindow.initialize();
 	CreateObjects();

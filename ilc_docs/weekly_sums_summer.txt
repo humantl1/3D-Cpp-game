@@ -11,3 +11,13 @@ Week 1 : Project Setup
     - libsdl2-ttf-dev : true type font library
     - libsdl2-mixer-dev : sound library
     - liblua5.3-dev : LUA, for scripting language (5.3 for max compatibility)
+  - Setup Linux virtual machine for testing game and libraries manually (outside of IDE)
+  - Research Make for use manually compiling in Linux
+    - Create Make file to manually include directories, clean executable, and output named executable
+  - Research git forking to fork a branch of current game to transition from GLFW to SDL
+    - Setup alternate branch for SDL integration
+  - Including SDL and Lua took a lot of internet troubleshooting to successfully incorporate
+    - Simultaneously developing in Linux and Windows illuminated the contrast between 
+      development differences between the two. Linux took minutes to implement, Windows took half a day.
+
+Week 2 : 

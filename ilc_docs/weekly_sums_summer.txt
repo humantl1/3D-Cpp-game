@@ -1,0 +1,13 @@
+Tim Benton
+3D Game Architecture II
+Summer, 2021
+Weekly Summaries
+
+Week 1 : Project Setup
+- Switch to SDL
+  - Implement SDL in Linux to understand command line commands
+    - libsdl2-dev : main SDL library
+    - libsdl2-image-dev : image display library
+    - libsdl2-ttf-dev : true type font library
+    - libsdl2-mixer-dev : sound library
+    - liblua5.3-dev : LUA, for scripting language (5.3 for max compatibility)

@@ -9,6 +9,9 @@
 *.user
 *.userosscache
 *.sln.docstates
+game_engine_2d/resources/
+game_engine_2d/assets/
+game_engine_2d/lib/
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

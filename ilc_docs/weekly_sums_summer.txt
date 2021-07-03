@@ -20,4 +20,5 @@ Week 1 : Project Setup
     - Simultaneously developing in Linux and Windows illuminated the contrast between 
       development differences between the two. Linux took minutes to implement, Windows took half a day.
 
-Week 2 : 
+Week 2 : Game Loop
+- Research game loop implementations

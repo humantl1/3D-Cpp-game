@@ -1,10 +1,13 @@
-#include "./Constants.h"
-#include "./Game.h"
+#include <iostream>
+#include <memory>
+
+#include "constants.h"
+#include "game.h"
 
 int main() {
-  Game* game = new Game();
-
-  game->Initialize(kWindowWidth, kWindowHeight)
+    std::unique_ptr<Game> game {new Game()};
+  
+  game->Initialize(kWindowWidth, kWindowHeight);
 
   while (game->IsRunning()) {
     game->ProcessInput();

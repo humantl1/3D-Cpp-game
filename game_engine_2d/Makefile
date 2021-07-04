@@ -5,7 +5,7 @@ build:
 	-I"./lib/lua" \
 	-L"./lib/lua" \
 	-llua5.3 \
-	-ISDL2 \
+	-lSDL2 \
 	-lSDL2_image \
 	-lSDL2_ttf \
 	-lSDL2_mixer;

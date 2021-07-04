@@ -13,12 +13,12 @@ class Game {
  public:
   Game();
   ~Game();
-  bool is_running() const;
+  bool IsRunning() const;
   void Initialize(int width, int height);
   void ProcessInput();
   void Update();
   void Render();
   void Destroy();
-}
+};
 
 #endif

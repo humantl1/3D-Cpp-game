@@ -21,4 +21,13 @@ Week 1 : Project Setup
       development differences between the two. Linux took minutes to implement, Windows took half a day.
 
 Week 2 : Game Loop
+- Implement make and compile_commands.json to improve development control and functionality
+- Research safe memory allocation and deletion
+  - implement unique pointers to avoid memory leaks
+- Implement SDL window functionality
 - Research game loop implementations
+  - implement basic game:
+    - initialization
+    - input
+    - and render functionality as discreet components
+

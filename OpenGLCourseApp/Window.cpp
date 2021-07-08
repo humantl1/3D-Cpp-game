@@ -35,7 +35,6 @@ int Window::initialize()
 		glfwTerminate();
 		return 1;
 	}
-
 	// Setup GLFW window properties
 	// OpenGL version (3.3)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);

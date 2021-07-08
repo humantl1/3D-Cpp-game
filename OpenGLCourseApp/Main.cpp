@@ -23,6 +23,7 @@
 #include "CommonValues.h"
 
 #include "Window.h"
+#include "SDL_Window.h"
 #include "Mesh.h"
 #include "Shader.h"
 #include "Camera.h"
@@ -41,6 +42,7 @@ GLuint uniformProjection = 0, uniformModel = 0, uniformView = 0, uniformEyePosit
 		uniformSpecularIntensity = 0, uniformShininess = 0,
 		uniformDirectionalLightTransform = 0, uniformOmniLightPos = 0, uniformFarPlane = 0;
 
+SDL_Window main_window;
 Window mainWindow;
 Camera camera;
 
@@ -138,7 +140,7 @@ void CreateObjects()
 	// Each unique vertex that composes a pyramid
 	// Expanded to consist of positional, texture, and normal data
 	// Although a 1D array, each line is referenced from the start of the line via the
-	// Vertex Attribute Pointers in Mesh.cpp
+	// Vertex Attribute Pointers in _Mesh.cpp
 	GLfloat vertices[] = 
 	{
 		// x     y     z		 u     v		     normals
@@ -439,18 +441,20 @@ int main(int argc, char* argv[]) // SDL requires command line inputs be accomoda
 {
 	sol::state lua;
 	lua.open_libraries(sol::lib::base);
-	mainWindow = Window(1366, 768);
-	mainWindow.initialize();
+  main_window = SDL_Window(1366, 768);
+	main_window.Initialize();
+	//mainWindow = Window(1366, 768);
+	//mainWindow.initialize();
 	CreateObjects();
 	CreateShaders();
 
 	// Set Textures
- 	rockTexture = Texture((char*)"Textures/rock.png");
+	rockTexture = Texture((char*)"Textures/rock.png");
 	rockTexture.LoadTexture();
 	asteroidTexture = Texture((char*)"Textures/asteroid.png");
 	asteroidTexture.LoadTexture();
- 
-	// Set Materials
+
+  // Set Materials
 	shinyMaterial = Material(1.0f, 256);
 	dullMaterial = Material(0.3f, 4);
 
@@ -521,7 +525,7 @@ int main(int argc, char* argv[]) // SDL requires command line inputs be accomoda
 
 	// initial camera values
 	camera = Camera(glm::vec3(0.0f, 0.0f, 0.0f),	// Camera start position
-		glm::vec3(0.0f, 1.0f, 0.0f),				// Camera start up direction
+	  glm::vec3(0.0f, 1.0f, 0.0f),				// Camera start up direction
 		-90.0f,										// Camera start yaw
 		0.0f,										// Camera start pitch
 		5.00f,										// Camera move speed
@@ -530,28 +534,29 @@ int main(int argc, char* argv[]) // SDL requires command line inputs be accomoda
 	// projection matrix doesn't change
 	glm::mat4 projection = glm::perspective(
 		glm::radians(60.0f), // fov from top to bottom
-		(GLfloat)mainWindow.getBufferWidth() / (GLfloat)mainWindow.getBufferHeight(), // aspect ratio
+		(GLfloat)main_window.GetBufferWidth() / (GLfloat)main_window.GetBufferHeight(), // aspect ratio
 		0.1f, // near z
 		100.0f); // far z
 
 	// Main loop
-	while (!mainWindow.getShouldClose())
+	while (main_window.GetIsRunning())
 	{
+		main_window.ProcessInput();
 		// Delta Time
 		GLfloat now = glfwGetTime(); // returns time in seconds
-		deltaTime = now - lastTime;
+	  deltaTime = now - lastTime;
 		lastTime = now;
 
-		// Get + handle user input events
-		glfwPollEvents();
-		camera.keyControl(mainWindow.getKeys(), deltaTime);
-		camera.mouseControl(mainWindow.getXChange(), mainWindow.getYChange());
+	//	// Get + handle user input events
+	//	glfwPollEvents();
+	//	camera.keyControl(mainWindow.getKeys(), deltaTime);
+	//	camera.mouseControl(mainWindow.getXChange(), mainWindow.getYChange());
 
-		if (mainWindow.getKeys()[GLFW_KEY_L])
-		{
-			spotLights[0].Toggle();
-			mainWindow.getKeys()[GLFW_KEY_L] = false;
-		}
+	//	if (mainWindow.getKeys()[GLFW_KEY_L])
+	//	{
+	//		spotLights[0].Toggle();
+	//		mainWindow.getKeys()[GLFW_KEY_L] = false;
+	//	}
 
 		// Get shadows
 		DirectionalShadowMapPass(&mainLight); // render scene to shadow map frame buffer
@@ -569,7 +574,7 @@ int main(int argc, char* argv[]) // SDL requires command line inputs be accomoda
 
 		glUseProgram(0);
 
-		mainWindow.swapBuffer();
+		main_window.SwapBuffer();
 	}
 
 	return 0;

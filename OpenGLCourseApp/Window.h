@@ -7,7 +7,7 @@
 
 class Window
 {
-public:
+ public:
 	Window();
 	Window(GLint windowWidth, GLint windowHeight);
 
@@ -26,7 +26,7 @@ public:
 
 	~Window();
 
-private:
+ private:
 	GLFWwindow* mainWindow;
 
 	GLint width, height;

@@ -4,7 +4,7 @@
 #include "game.h"
 #include "constants.h"
 
-Game::Game() {
+Game::Game() : ticksLastFrame{0} {
   this->is_running = false;
 }
 
@@ -17,8 +17,8 @@ bool Game::IsRunning() const {
 // TODO: temp vars for testing
 float projectile_pos_x = 0.0f;
 float projectile_pos_y = 0.0f;
-float projectile_vel_x = 0.5f;
-float projectile_vel_y = 0.5f;
+float projectile_vel_x = 20;
+float projectile_vel_y = 20;
 
 // initialize window, renderer
 void Game::Initialize(int width, int height) {
@@ -81,8 +81,25 @@ void Game::ProcessInput() {
 }
 
 void Game::Update() {
-  projectile_pos_x += projectile_vel_x;
-  projectile_pos_y += projectile_vel_y;
+  // wait until 16.6 ms has ellapsed since the last frame
+  float timeToWait = kFrameTargetTime - (SDL_GetTicks() - ticksLastFrame);
+
+  // delay if rendering completed before desired fps
+  if (timeToWait > 0 && timeToWait <= kFrameTargetTime) {
+    SDL_Delay(timeToWait);
+  }
+
+  // delta time is difference in ticks from last frame converted to seconds
+  float deltaTime = (SDL_GetTicks() - ticksLastFrame / 1000.0f);
+
+  // Clamp deltaTime to max value
+  deltaTime = (deltaTime > kMaxDeltaTime) ? kMaxDeltaTime : deltaTime;
+
+  // set new ticks for the current frame to be used in the next pass
+  ticksLastFrame = SDL_GetTicks();
+
+  projectile_pos_x += projectile_vel_x * deltaTime;
+  projectile_pos_y += projectile_vel_y * deltaTime;
 }
 
 void Game::Render() {
@@ -90,8 +107,8 @@ void Game::Render() {
   SDL_RenderClear(renderer); // clear back buffer
 
   SDL_Rect projectile {
-    (int) projectile_pos_x,
-    (int) projectile_pos_y,
+    static_cast<int>(projectile_pos_x),
+    static_cast<int>(projectile_pos_y),
     10,
     10};
 

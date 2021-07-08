@@ -11,6 +11,8 @@ class Game {
   SDL_Window* window;
   SDL_Renderer* renderer;
  public:
+  int ticksLastFrame;
+
   Game();
   ~Game();
   bool IsRunning() const;

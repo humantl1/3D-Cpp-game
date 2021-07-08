@@ -1,6 +1,5 @@
 #pragma once
 
-#include "SDL.h"
 #include "GL/glew.h"
 
 class SDL_Window
@@ -11,11 +10,11 @@ class SDL_Window
   inline GLint GetBufferWidth() { return buffer_width; }
   inline GLint GetBufferHeight() { return buffer_height; }
   inline bool GetIsRunning() { return is_running; }
-  void ProcessInput();
 
 	int Initialize();
   inline void SwapBuffer() { SDL_GL_SwapWindow(window); }
 
+  void Destroy();
   ~SDL_Window();
  private:
   SDL_Window* window;
@@ -23,7 +22,5 @@ class SDL_Window
   GLint width, height;
   GLint buffer_height, buffer_width; // viewport size in pixels
   bool is_running;
-
-  void Destroy();
 };
 

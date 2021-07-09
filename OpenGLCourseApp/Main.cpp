@@ -24,6 +24,7 @@
 
 #include "SDL_Window.h"
 #include "Input.h"
+#include "Update.h"
 #include "Mesh.h"
 #include "Shader.h"
 #include "Camera.h"
@@ -45,6 +46,7 @@ GLuint uniformProjection = 0, uniformModel = 0, uniformView = 0,
 
 SDL_Window main_window;
 Input input;
+Update update;
 Camera camera;
 
 Texture rockTexture;
@@ -282,12 +284,12 @@ void RenderScene()
   dullMaterial.UseMaterial(uniformSpecularIntensity, uniformShininess);
   xwing.RenderModel();
 
-  asteroidAngle += 0.2f;
+  asteroidAngle += 5.0f * update.GetDeltaTime();
   if (asteroidAngle > 360.0f) {
     asteroidAngle = 0.1f;
   }
 
-  // asteroid
+  // Rotating asteroid
   model = glm::mat4(1.0f);
   model = glm::rotate(model, asteroidAngle * toRadians,
                       glm::vec3(0.0f, 1.0f, 0.0f));
@@ -586,10 +588,7 @@ int main(int argc, char* argv[]) {
   // Main loop
   while (!input.GetExitPrompt()) {
     input.ProcessInput();
-    // Delta Time
-    GLfloat now = glfwGetTime();  // returns time in seconds
-    deltaTime = now - lastTime;
-    lastTime = now;
+    update.RunGameLoop();
 
 	//	// Get + handle user input events
 	//	glfwPollEvents();

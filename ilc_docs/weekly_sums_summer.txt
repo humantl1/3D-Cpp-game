@@ -20,14 +20,33 @@ Week 1 : Project Setup
     - Simultaneously developing in Linux and Windows illuminated the contrast between 
       development differences between the two. Linux took minutes to implement, Windows took half a day.
 
-Week 2 : Game Loop
+Week 2 : Game Loop Prototype
 - Implement make and compile_commands.json to improve development control and functionality
 - Research safe memory allocation and deletion
   - implement unique pointers to avoid memory leaks
 - Implement SDL window functionality
+  - Transfer window display handling from GLFW to SDL
+  - Transition window code 
 - Research game loop implementations
-  - implement basic game:
-    - initialization
-    - input
-    - and render functionality as discreet components
+  - In Linux, prototype basic game:
+    - initialization : initialize window and SDL functionality
+    - input : receive and record input via SDL
+    - render functionality : render 2d graphics via SDL
+    - time step : fix delta time to specified frames per second
+
+Week 3 : Game Loop Implementation
+- Move core functionality to discreet classes
+  -  Input
+  -  SDL_window
+  -  Update
+- Fix time step in 3D game code
+  - Implement cpu independent Delta Time
+  - Decouple desired frames per second from functionality via a separate "constant" class
+  - Sync rendering buffer output with Delta Time
+- Begin more robust SDL input implementation, replacing ad hoc GLFW input functionality
+  - Begin attempt to abstract input functionality from specific input implementation
+    - i.e. classes that receive input are uneffected by changes in input implementation
+    - This will require significant engineering, as an event system would be the most robust 
+        way to achieve this
+- Begin researching potential event system architectures
 

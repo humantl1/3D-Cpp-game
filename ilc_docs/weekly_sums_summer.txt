@@ -17,7 +17,7 @@ Week 1 : Project Setup
   - Research git forking to fork a branch of current game to transition from GLFW to SDL
     - Setup alternate branch for SDL integration
   - Including SDL and Lua took a lot of internet troubleshooting to successfully incorporate
-    - Simultaneously developing in Linux and Windows illuminated the contrast between 
+    - Simultaneously developing in Linux and Windows illuminated the contrast between
       development differences between the two. Linux took minutes to implement, Windows took half a day.
 
 Week 2 : Game Loop Prototype
@@ -26,7 +26,7 @@ Week 2 : Game Loop Prototype
   - implement unique pointers to avoid memory leaks
 - Implement SDL window functionality
   - Transfer window display handling from GLFW to SDL
-  - Transition window code 
+  - Transition window code
 - Research game loop implementations
   - In Linux, prototype basic game:
     - initialization : initialize window and SDL functionality
@@ -46,7 +46,24 @@ Week 3 : Game Loop Implementation
 - Begin more robust SDL input implementation, replacing ad hoc GLFW input functionality
   - Begin attempt to abstract input functionality from specific input implementation
     - i.e. classes that receive input are uneffected by changes in input implementation
-    - This will require significant engineering, as an event system would be the most robust 
+    - This will require significant engineering, as an event system would be the most robust
         way to achieve this
 - Begin researching potential event system architectures
 
+Week 4 :
+- Plan overall architecture of game:
+  - Entity-Component relationship
+    - entities are composed of components, e.g. transform, collider, etc.
+    - Game: holds entity manager
+      - Entity Manager: list of entities, adds and gets entities, updates and renders entities
+        - Entity class : list of components, adds components, updates and renders
+          - Component class : tracks owner entity, virtual update & render
+            - individual component classes : component specific data members,
+              implement override update and render for themselves
+   - this will require significant reworking of existing rendering engine code
+     - the rendering engine was designed for testing rendering processes, not for robust game code
+       so much of the none-rendering code will need to be updated or discarded
+- Prototype entity/componenet system in linux
+  - create entity manager class to hold all entities
+  - create entity class to represent a "game object"
+  - create a componenet virtual class as a blueprint for chunks of functionality that compose entities

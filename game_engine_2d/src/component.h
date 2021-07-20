@@ -7,9 +7,9 @@ class Component {
  public:
    Entity* owner;
    virtual ~Component() {}
-   virtual Initialize() {}
-   virtual Update(float delta_time) {}
-   virtual Render() {}
+   virtual void Initialize() {}
+   virtual void Update(float delta_time) {}
+   virtual void Render() {}
  private:
 };
 

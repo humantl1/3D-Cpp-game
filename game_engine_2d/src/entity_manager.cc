@@ -1,4 +1,6 @@
 #include "entity_manager.h"
+#include <atomic>
+#include <cstdlib>
 #include <memory>
 
 void EntityManager::ClearData() {

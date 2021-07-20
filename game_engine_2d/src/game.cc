@@ -3,15 +3,20 @@
 
 #include "game.h"
 #include "constants.h"
+#include "../lib/glm/glm.hpp"
 
-Game::Game() : ticksLastFrame{0} {
-  this->is_running = false;
+EntityManager manager;
+SDL_Renderer* Game::renderer_;
+
+
+Game::Game() : ticksLastFrame_{0} {
+  this->is_running_ = false;
 }
 
 Game::~Game() {}
 
 bool Game::IsRunning() const {
-  return this->is_running;
+  return this->is_running_;
 }
 
 // TODO: temp vars for testing
@@ -27,7 +32,7 @@ void Game::Initialize(int width, int height) {
     return;
   }
   
-  window = SDL_CreateWindow( // Create window via SDL API
+  window_ = SDL_CreateWindow( // Create window via SDL API
     NULL,                    // window title
     SDL_WINDOWPOS_CENTERED,  // xpos of window
     SDL_WINDOWPOS_CENTERED,  // ypos of window
@@ -35,21 +40,21 @@ void Game::Initialize(int width, int height) {
     height,                  // height of window
     SDL_WINDOW_BORDERLESS);  // flags (no border)
 
-  if (!window) {
+  if (!window_) {
     std::cerr << "Error creating SDL window." << std::endl;
     return;
   }
 
-  renderer = SDL_CreateRenderer(  // Create 2D renderer context for window
-    window,                       // window where rendering is displayed 
+  renderer_ = SDL_CreateRenderer(  // Create 2D renderer context for window
+    window_,                       // window where rendering is displayed 
     -1,                           // index, -1 to initialize first supported rendering driver
     0);                           // optional flags
 
-  if (!renderer) {
+  if (!renderer_) {
     std::cerr << "Error creating SDL renderer." << std::endl;
   }
 
-  is_running = true;
+  is_running_ = true;
 }
 
 // Handle input
@@ -64,14 +69,14 @@ void Game::ProcessInput() {
   switch (event.type) {
     // Exit program if window 'x' button is pressed
     case SDL_QUIT: {
-      is_running = false;
+      is_running_ = false;
       break;
     }
 
     // Exit program if 'Escape' is pressed
     case SDL_KEYDOWN: {
       if (event.key.keysym.sym == SDLK_ESCAPE) {
-        is_running = false;
+        is_running_ = false;
       }
     }
     default: {
@@ -82,7 +87,7 @@ void Game::ProcessInput() {
 
 void Game::Update() {
   // wait until 16.6 ms has ellapsed since the last frame
-  float timeToWait = kFrameTargetTime - (SDL_GetTicks() - ticksLastFrame);
+  float timeToWait = kFrameTargetTime - (SDL_GetTicks() - ticksLastFrame_);
 
   // delay if rendering completed before desired fps
   if (timeToWait > 0 && timeToWait <= kFrameTargetTime) {
@@ -90,21 +95,21 @@ void Game::Update() {
   }
 
   // delta time is difference in ticks from last frame converted to seconds
-  float deltaTime = (SDL_GetTicks() - ticksLastFrame / 1000.0f);
+  float deltaTime = (SDL_GetTicks() - ticksLastFrame_ / 1000.0f);
 
   // Clamp deltaTime to max value
   deltaTime = (deltaTime > kMaxDeltaTime) ? kMaxDeltaTime : deltaTime;
 
   // set new ticks for the current frame to be used in the next pass
-  ticksLastFrame = SDL_GetTicks();
+  ticksLastFrame_ = SDL_GetTicks();
 
   projectile_pos_x += projectile_vel_x * deltaTime;
   projectile_pos_y += projectile_vel_y * deltaTime;
 }
 
 void Game::Render() {
-  SDL_SetRenderDrawColor(renderer, 21, 21, 21, 255);
-  SDL_RenderClear(renderer); // clear back buffer
+  SDL_SetRenderDrawColor(renderer_, 21, 21, 21, 255);
+  SDL_RenderClear(renderer_); // clear back buffer
 
   SDL_Rect projectile {
     static_cast<int>(projectile_pos_x),
@@ -112,16 +117,16 @@ void Game::Render() {
     10,
     10};
 
-  SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-  SDL_RenderFillRect(renderer, &projectile);
+  SDL_SetRenderDrawColor(renderer_, 255, 255, 255, 255);
+  SDL_RenderFillRect(renderer_, &projectile);
 
   // swap buffer
-  SDL_RenderPresent(renderer);
+  SDL_RenderPresent(renderer_);
 }
 
 void Game::Destroy() {
-  SDL_DestroyRenderer(renderer);
-  SDL_DestroyWindow(window);
+  SDL_DestroyRenderer(renderer_);
+  SDL_DestroyWindow(window_);
   SDL_Quit();
 }
 

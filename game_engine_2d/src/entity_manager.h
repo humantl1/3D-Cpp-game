@@ -4,7 +4,6 @@
 #include <memory>
 #include <vector>
 
-#include "entity.h"
 #include "component.h"
 
 class EntityManager {

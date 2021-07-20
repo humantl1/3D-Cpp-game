@@ -5,6 +5,9 @@
 #include <string>
 #include <memory>
 
+#include "entity_manager.h"
+#include "component.h"
+
 class Component;
 class EntityManager;
 

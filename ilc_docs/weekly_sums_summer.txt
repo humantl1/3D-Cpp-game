@@ -67,3 +67,4 @@ Week 4 :
   - create entity manager class to hold all entities
   - create entity class to represent a "game object"
   - create a componenet virtual class as a blueprint for chunks of functionality that compose entities
+  - create a transform_component class as a first full example of entity-component system

@@ -12,8 +12,11 @@ class TransformComponent : public Component {
   int height_;
   int scale_;
 
-  TransformComponent(int pos_x, int pos_y, int vel_x, int vel_y, int w, int h, 
-      int s);
+  TransformComponent(
+      int pos_x, int pos_y, // positional data
+      int vel_x, int vel_y, // velocity data : included in transform 
+                            // (not rigidbody) for simplicity
+      int w, int h, int s); // size and scale data
   void Initialize() override;
   void Update(float delta_time) override;
   void Render() override;

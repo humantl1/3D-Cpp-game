@@ -3,12 +3,10 @@
 
 #include <vector>
 #include <string>
-#include <memory>
+#include <map>
 
-#include "entity_manager.h"
 #include "component.h"
 
-class Component;
 class EntityManager;
 
 class Entity {
@@ -22,10 +20,27 @@ class Entity {
   void Destroy();
   bool IsActive() const;
 
+  template<typename T, typename... TArgs>
+  T& AddComponent(TArgs&&... args) {
+    // std::forwared required for passing variable T args
+    T* new_component(new T(std::forward<TArgs>(args)...));
+    new_component->owner = this;
+    components_.emplace_back(new_component);
+    component_type_map_[&typeid(*new_component)] = new_component;
+    new_component->Initialize();
+    return *new_component;
+  }
+
+  template <typename T>
+  T* GetComponent() {
+    return static_cast<T*>(component_type_map_[&typeid(T)]);
+  }
+
  private:
   EntityManager& manager_;
   bool is_active_;
-  std::vector<std::unique_ptr<Component>> components_;
+  std::vector<Component*> components_;
+  std::map<const std::type_info*, Component*> component_type_map_;
 };
 
 #endif

@@ -16,6 +16,4 @@ int main() {
   }
 
   game->Destroy();
-
-  std::cout << "Game is running..." <<std::endl;
 }

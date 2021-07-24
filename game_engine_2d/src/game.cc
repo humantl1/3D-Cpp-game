@@ -1,13 +1,14 @@
 #include <SDL2/SDL_render.h>
 #include <iostream>
 
+#include "../lib/glm/glm.hpp"
+
 #include "game.h"
 #include "constants.h"
-#include "../lib/glm/glm.hpp"
+#include "components/transform_component.h"
 
 EntityManager manager;
 SDL_Renderer* Game::renderer_;
-
 
 Game::Game() : ticksLastFrame_{0} {
   this->is_running_ = false;
@@ -19,19 +20,13 @@ bool Game::IsRunning() const {
   return this->is_running_;
 }
 
-// TODO: temp vars for testing
-float projectile_pos_x = 0.0f;
-float projectile_pos_y = 0.0f;
-float projectile_vel_x = 20;
-float projectile_vel_y = 20;
-
 // initialize window, renderer
 void Game::Initialize(int width, int height) {
   if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
     std::cerr << "Error initializing SDL." <<std::endl;
     return;
   }
-  
+
   window_ = SDL_CreateWindow( // Create window via SDL API
     NULL,                    // window title
     SDL_WINDOWPOS_CENTERED,  // xpos of window
@@ -54,7 +49,16 @@ void Game::Initialize(int width, int height) {
     std::cerr << "Error creating SDL renderer." << std::endl;
   }
 
+  LoadScene(0);
+
+  
+
   is_running_ = true;
+}
+
+void Game::LoadScene(int scene_number) {
+  Entity& new_entity(manager.AddEntity("projectile"));
+  new_entity.AddComponent<TransformComponent>(0, 0, 20, 20, 32, 32, 1); 
 }
 
 // Handle input
@@ -95,30 +99,26 @@ void Game::Update() {
   }
 
   // delta time is difference in ticks from last frame converted to seconds
-  float deltaTime = (SDL_GetTicks() - ticksLastFrame_ / 1000.0f);
+  float delta_time = (SDL_GetTicks() - ticksLastFrame_) / 1000.0f;
 
   // Clamp deltaTime to max value
-  deltaTime = (deltaTime > kMaxDeltaTime) ? kMaxDeltaTime : deltaTime;
+  delta_time = (delta_time > kMaxDeltaTime) ? kMaxDeltaTime : delta_time;
 
   // set new ticks for the current frame to be used in the next pass
   ticksLastFrame_ = SDL_GetTicks();
 
-  projectile_pos_x += projectile_vel_x * deltaTime;
-  projectile_pos_y += projectile_vel_y * deltaTime;
+  manager.Update(delta_time);
 }
 
 void Game::Render() {
   SDL_SetRenderDrawColor(renderer_, 21, 21, 21, 255);
   SDL_RenderClear(renderer_); // clear back buffer
 
-  SDL_Rect projectile {
-    static_cast<int>(projectile_pos_x),
-    static_cast<int>(projectile_pos_y),
-    10,
-    10};
+  if (manager.HasNoEntities()) {
+    return;
+  }
 
-  SDL_SetRenderDrawColor(renderer_, 255, 255, 255, 255);
-  SDL_RenderFillRect(renderer_, &projectile);
+  manager.Render();
 
   // swap buffer
   SDL_RenderPresent(renderer_);

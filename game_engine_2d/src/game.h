@@ -4,7 +4,6 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
-
 #include "entity.h"
 #include "component.h"
 #include "entity_manager.h"
@@ -21,7 +20,7 @@ class Game {
   ~Game();
   bool IsRunning() const;
   void Initialize(int width, int height);
-  void LoadLevel(int level_number);
+  void LoadScene(int scene_number);
   void ProcessInput();
   void Update();
   void Render();

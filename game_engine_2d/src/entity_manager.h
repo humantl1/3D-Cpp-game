@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "component.h"
+class Entity;
 
 class EntityManager {
  public:
@@ -12,11 +13,11 @@ class EntityManager {
   void Update(float delta_time);
   void Render();
   bool HasNoEntities();
-  std::unique_ptr<Entity> AddEntity(std::string entity_name);
-  std::vector<std::unique_ptr<Entity>> GetEntities() const;
+  Entity& AddEntity(std::string entity_name);
+  std::vector<Entity*> GetEntities() const;
   unsigned int GetEntityCount();
  private:
-  std::vector<std::unique_ptr<Entity>> entities_;
+  std::vector<Entity*> entities_;
 };
 
 #endif

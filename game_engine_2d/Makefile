@@ -1,6 +1,7 @@
 build:
 	g++ -w -std=c++14 \
 	./src/*.cc \
+	./src/components/*.cc \
 	-o game \
 	-I"./lib/lua" \
 	-L"./lib/lua" \

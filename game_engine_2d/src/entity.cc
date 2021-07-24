@@ -24,6 +24,6 @@ void Entity::Destroy() {
   this->is_active_ = false;
 }
 
-bool Entity:: IsActive() const {
+bool Entity::IsActive() const {
   return this->is_active_;
 }

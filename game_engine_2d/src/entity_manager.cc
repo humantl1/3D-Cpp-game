@@ -1,7 +1,6 @@
 #include "entity_manager.h"
-#include <atomic>
+#include "entity.h"
 #include <cstdlib>
-#include <memory>
 
 void EntityManager::ClearData() {
   for (auto& entity : entities_) {
@@ -24,13 +23,13 @@ void EntityManager::Render() {
     entity->Render();
 }
 
-std::unique_ptr<Entity> EntityManager::AddEntity(std::string entity_name) {
-  std::unique_ptr<Entity> entity(new Entity(*this, entity_name));
+Entity& EntityManager::AddEntity(std::string entity_name) {
+  Entity* entity = new Entity(*this, entity_name);
   entities_.emplace_back(entity);
-  return entity;
+  return *entity;
 }
 
-std::vector<std::unique_ptr<Entity>> EntityManager::GetEntities() const {
+std::vector<Entity*> EntityManager::GetEntities() const {
   return entities_;
 }
 

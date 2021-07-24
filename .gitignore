@@ -9,6 +9,7 @@
 *.user
 *.userosscache
 *.sln.docstates
+*.swp
 game_engine_2d/resources/
 game_engine_2d/assets/
 game_engine_2d/lib/

@@ -22,7 +22,7 @@ class RenderManager {
          uniformShininess = 0, uniformDirectionalLightTransform = 0,
          uniformOmniLightPos = 0, uniformFarPlane = 0;
 
-  // TODO: move to asset manager
+  // TODO: these variables should be components or objects
   Texture rockTexture;
   Texture asteroidTexture;
 
@@ -62,9 +62,7 @@ class RenderManager {
 
  public: // Methods
   RenderManager();
-  void Initialize(static const char* vert_shader, 
-                  static const char* frag_shader,
-                  GLfloat buffer_width, GLfloat buffer_height);
+  void Initialize(GLfloat buffer_width, GLfloat buffer_height);
 
   // Phong shading. Average normals of each face of shared vertices
   void calcAverageNormals(unsigned int* indices, unsigned int indiceCount,

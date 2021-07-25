@@ -1,15 +1,11 @@
 #include "render_manager.h"
 
-RenderManager::RenderManager() {}
+RenderManager::RenderManager() : vShader{"Shaders/shader.vert"}, 
+                                 fShader{"Shaders/shader.frag"} {}
 
-void RenderManager::Initialize(static const char* vert_shader,
-                               static const char* frag_shader,
-                               GLfloat buffer_width, GLfloat buffer_height) {
-  // Set Shader filepaths
-  vShader = vert_shader;
-  fShader = frag_shader;
-
+void RenderManager::Initialize(GLfloat buffer_width, GLfloat buffer_height) {
   // Set Textures
+  // TODO: textures should be components of objects
   rockTexture = Texture((char*)"Textures/rock.png");
   rockTexture.LoadTexture();
   asteroidTexture = Texture((char*)"Textures/asteroid.png");
@@ -19,6 +15,7 @@ void RenderManager::Initialize(static const char* vert_shader,
   shinyMaterial = Material(1.0f, 256);
   dullMaterial = Material(0.3f, 4);
 
+  // TODO: models should be components of objects
   // Load Models
   xwing = Model();
   xwing.LoadModel("Models/x-wing.obj");

@@ -1,0 +1,25 @@
+Tim Benton
+3D Game Architecture II
+Summer, 2021
+Week 4 Summary
+
+All code and weekly summaries documented @ https://github.com/humantl1/3D-Cpp-game
+
+Week 4 work:
+I planned the overall architecture of the game by first planning the simplified context of the 2d game
+engine I am making in Linux. I will use an entity-component design, where each game object is an "entity" 
+which is composed of one or more "components". These components handle encapsulated concepts such as 
+transforms or textures. Each component will have its own render and update functions. Each entity will have
+a vector of its components that is iterated through for update and rendering. All entities will belong to a
+vector of entities that also be iterated through, which will be handled by an entity manager. A game class
+will handle the entity manager and other resource managers. Implementing this for the 3d game will require
+significant effort, but it should be a robust system capable of a lot.
+
+After planning, I coded the entity manager, entity, virtual component, and transform component classes. 
+
+My major problem this week was losing track of the interaction of systems. To overcome this I drew a UML-esque
+diagram mapping classes, functions, and interactions. I will include this diagram in my submission.
+
+My questions this week focused on the best ways to design the systems and interactions. This is a bit overarching, 
+along the line of "how do you design a building". There are almost infinite answers to that question. I think
+attempting to solve the problem is probably one component to answering the question.

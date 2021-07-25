@@ -3,6 +3,9 @@
 
 #include "stb_image.h"
 
+const int kBufferStartWidth = 1366;
+const int kBufferStartHeight = 768;
+
 const float kToRadians = 3.14159265f / 180.0f;
 
 const int kMaxPointLights = 3; // Should always match value in shader.frag

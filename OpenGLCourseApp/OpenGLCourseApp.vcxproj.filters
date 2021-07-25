@@ -63,10 +63,16 @@
     <ClCompile Include="SDL_Window.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Input.cpp">
+    <ClCompile Include="Update.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Update.cpp">
+    <ClCompile Include="game.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="input_manager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="render_manager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -131,10 +137,16 @@
     <ClInclude Include="SDL_Window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Input.h">
+    <ClInclude Include="Update.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Update.h">
+    <ClInclude Include="game.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="input_manager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="render_manager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

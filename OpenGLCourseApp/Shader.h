@@ -93,7 +93,7 @@ private:
 		GLuint uniformConstant;
 		GLuint uniformLinear;
 		GLuint uniformExponent;
-	} uniformPointLight[MAX_POINT_LIGHTS];
+	} uniformPointLight[kMaxPointLights];
 
 	struct																				// IDs of Spot Light struct members
 	{
@@ -108,13 +108,13 @@ private:
 
 		GLuint uniformDirection;
 		GLuint uniformEdge;
-	} uniformSpotLight[MAX_SPOT_LIGHTS];
+	} uniformSpotLight[kMaxSpotLights];
 
 	struct // corresponds to OmniShadowMap struct in shader.frag
 	{
 		GLuint shadowMap;
 		GLuint farPlane;
-	} uniformOmniShadowMap[MAX_POINT_LIGHTS + MAX_SPOT_LIGHTS];
+	} uniformOmniShadowMap[kMaxPointLights + kMaxSpotLights];
 
 	void CompileShader(const char* vertexCode, const char* fragmentCode);
 	void CompileShader(const char* vertexCode, const char* geometryCode, const char* fragmeentCode);

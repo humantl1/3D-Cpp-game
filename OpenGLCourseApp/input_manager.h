@@ -1,14 +1,14 @@
 #pragma once
 
 // TODO: handle all input with this class
-class Input
+class InputManager
 {
  public:
-  Input();
+  InputManager();
   void ProcessInput();
   inline bool GetExitPrompt() { return exit_prompt; }
 
-  ~Input();
+  ~InputManager();
 
  private:
   bool exit_prompt;

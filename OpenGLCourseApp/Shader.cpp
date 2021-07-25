@@ -161,7 +161,7 @@ void Shader::CompileProgram()
 	uniformPointLightCount = glGetUniformLocation(shaderID, "pointLightCount");
 
 	// Uniform IDs in case of multiple point lights
-	for (size_t i = 0; i < MAX_POINT_LIGHTS; i++)
+	for (size_t i = 0; i < kMaxPointLights; i++)
 	{
 		char locBuff[100] = { '\0' };
 
@@ -193,7 +193,7 @@ void Shader::CompileProgram()
 	uniformSpotLightCount = glGetUniformLocation(shaderID, "spotLightCount");
 
 	// Uniform IDs in case of multiple spot lights
-	for (size_t i = 0; i < MAX_SPOT_LIGHTS; i++)
+	for (size_t i = 0; i < kMaxSpotLights; i++)
 	{
 		char locBuff[100] = { '\0' };
 
@@ -245,7 +245,7 @@ void Shader::CompileProgram()
 	}
 
 	// Set IDs for omniShadowMaps struct members in shader.frag
-	for (size_t i = 0; i < MAX_POINT_LIGHTS + MAX_SPOT_LIGHTS; i++)
+	for (size_t i = 0; i < kMaxPointLights + kMaxSpotLights; i++)
 	{
 		char locBuff[100] = { '\0' };
 
@@ -381,8 +381,8 @@ void Shader::SetDirectionalLight(DirectionalLight& dLight)
 void Shader::SetPointLights(PointLight* pLight, unsigned int lightCount, unsigned int textureUnit, unsigned int offset)
 
 {
-	if (lightCount > MAX_POINT_LIGHTS) 
-		lightCount = MAX_POINT_LIGHTS;	
+	if (lightCount > kMaxPointLights) 
+		lightCount = kMaxPointLights;	
 
 	glUniform1i(uniformPointLightCount, lightCount);
 
@@ -402,8 +402,8 @@ void Shader::SetPointLights(PointLight* pLight, unsigned int lightCount, unsigne
 // Pass applicable uniform variables to array of SpotLight objects to set the values of each in shader.frag
 void Shader::SetSpotLights(SpotLight* sLight, unsigned int lightCount, unsigned int textureUnit, unsigned int offset)
 {
-	if (lightCount > MAX_SPOT_LIGHTS) 
-		lightCount = MAX_SPOT_LIGHTS;	
+	if (lightCount > kMaxSpotLights) 
+		lightCount = kMaxSpotLights;	
 
 	glUniform1i(uniformSpotLightCount, lightCount);
 

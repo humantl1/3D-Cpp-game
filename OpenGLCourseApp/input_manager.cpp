@@ -1,11 +1,11 @@
 #include "SDL_ttf.h"
 
-#include "Input.h"
+#include "input_manager.h"
 #include "SDL_Window.h"
 
-Input::Input() : exit_prompt{false} {}
+InputManager::InputManager() : exit_prompt{false} {}
 
-void Input::ProcessInput() {
+void InputManager::ProcessInput() {
   SDL_Event event;
 
   SDL_PollEvent(&event);
@@ -28,4 +28,4 @@ void Input::ProcessInput() {
   }
 }
 
-Input::~Input() {}
+InputManager::~InputManager() {}

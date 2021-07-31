@@ -1,9 +1,19 @@
 #ifndef GAME_H
 #define GAME_H
 
+#ifdef VSCODEWIN
+#include "../../ExternalLibs/SDL2/include/SDL.h"
+#include "../../ExternalLibs/SDL2/include/SDL_image.h"
+#include "../../ExternalLibs/SDL2/include/SDL_ttf.h"
+#include "../../ExternalLibs/SDL2/include/SDL_render.h"
+#elif VSCODELINUX
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_render.h>
+#endif
+
+
 #include "entity.h"
 #include "component.h"
 #include "entity_manager.h"

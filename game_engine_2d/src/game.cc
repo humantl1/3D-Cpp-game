@@ -1,4 +1,3 @@
-#include <SDL2/SDL_render.h>
 #include <iostream>
 
 #include "../lib/glm/glm.hpp"
@@ -41,7 +40,7 @@ void Game::Initialize(int width, int height) {
   }
 
   renderer_ = SDL_CreateRenderer(  // Create 2D renderer context for window
-    window_,                       // window where rendering is displayed 
+    window_,                       // window where rendering is displayed
     -1,                           // index, -1 to initialize first supported rendering driver
     0);                           // optional flags
 
@@ -51,23 +50,23 @@ void Game::Initialize(int width, int height) {
 
   LoadScene(0);
 
-  
+
 
   is_running_ = true;
 }
 
 void Game::LoadScene(int scene_number) {
   Entity& new_entity(manager.AddEntity("projectile"));
-  new_entity.AddComponent<TransformComponent>(0, 0, 20, 20, 32, 32, 1); 
+  new_entity.AddComponent<TransformComponent>(0, 0, 20, 20, 32, 32, 1);
 }
 
 // Handle input
 void Game::ProcessInput() {
   // Create object to store events
   SDL_Event event;       // A structure containg all SDL event structures
-  
+
   // Queue events and pass to event object
-  SDL_PollEvent(&event); // Returns 1 if event pending. If there is a "pending event" it is stored in SDL_Event. 
+  SDL_PollEvent(&event); // Returns 1 if event pending. If there is a "pending event" it is stored in SDL_Event.
 
   // Handle event types
   switch (event.type) {

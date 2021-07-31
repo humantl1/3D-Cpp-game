@@ -1,0 +1,34 @@
+Tim Benton
+3D Game Architecture II
+Summer, 2021
+Week 5 summary
+
+What I did:
+I continued implemented managers for my 2d prototype engine. To reiterate, I'm devoloping
+this engine as a simplified model on which I can test out design ideas, as well as getting
+some experience developing an application in Linux. I coded the framework for an asset
+manager and a texture manager in this engine. The asset manager will handle sprites, etc, 
+while the texture manager will handle loading textures. I also implemented c++
+templates, which are really convoluted, so that implementation took some trial and error. 
+
+I carried what I've learned from the 2d engine over to my 3d game, and began visually 
+mapping out its architecture. I've included a pic of what I've drawn on my whiteboard.
+I created the following new manager classes: render, input, update, asset, entity, and
+texture, as well as a game class which will handle the game loop. I migrated the wall
+of code that was still in main() and split it between the render manager and game class.
+This makes it more reasonable and will improve encapsulation. There is still a lot
+of existing code that needs to be split between other classes, and a lot of variables
+that need to be made private, but this was the initial major step.
+
+Problems:
+The biggest hurdle this week was the convoluted c++ syntax of templates. But, this
+is usually my biggest problem for this project, so I'm used to it. I can see why
+both c programmers and higher level (c#, python, etc) programmers often loathe c++.
+It has a lot of tools, but those tools can be REAL ugly. It frustrates me, but I 
+still have a fondness for it. And with modern game development it is often a 
+necessary evil.
+
+Questions: 
+I'm curious about how much to partition code into smaller classes and functions.
+I think this is a subjective question, but I am interested to hear different 
+perspectives on the subject.

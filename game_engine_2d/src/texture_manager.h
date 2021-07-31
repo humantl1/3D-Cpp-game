@@ -6,7 +6,11 @@
 #ifndef TEXTUREMANAGER_H
 #define TEXTUREMANAGER_H
 
+#ifdef VSCODEWIN
+#include "../../ExternalLibs/SDL2/include/SDL.h"
+#elif VSCODELINUX
 #include <SDL2/SDL.h>
+#endif
 
 #include "game.h"
 

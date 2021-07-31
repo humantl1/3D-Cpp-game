@@ -1,4 +1,9 @@
+#if VSCODEWIN
+#include "../../ExternalLibs/SDL2/include/SDL.h"
+#elif VSCODELINUX
 #include <SDL2/SDL.h>
+#endif
+
 
 #include "transform_component.h"
 #include "../game.h"

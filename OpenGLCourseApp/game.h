@@ -11,6 +11,8 @@
 #include "input_manager.h"
 #include "Camera.h"
 #include "Update.h"
+#include "entity_manager.h"
+#include "asset_manager.h"
 
 class Game {
  public:
@@ -20,6 +22,8 @@ class Game {
   Update update_;
   Camera camera_;
   SDL_Window* window_;
+  EntityManager* entity_manager_;
+  AssetManager* asset_manager_;
 
   Game();
   void Initialize();

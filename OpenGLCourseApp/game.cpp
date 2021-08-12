@@ -4,11 +4,15 @@
 
 Game::Game() : buffer_height_{kBufferStartHeight},
                buffer_width_{kBufferStartWidth},
-               window_{nullptr} {}
+               window_{nullptr},
+               entity_manager_{nullptr},
+               asset_manager_ {nullptr} {}
 
 void Game::Initialize() { 
   window_ = new SDL_Window(kBufferStartWidth, kBufferStartHeight);
   window_->Initialize();
+  asset_manager_ = new AssetManager();
+  entity_manager_ = new EntityManager();
   renderer_.Initialize(buffer_width_, buffer_height_);
   renderer_.CreateObjects();
   renderer_.CreateShaders();
@@ -62,4 +66,6 @@ void Game::Run() {
 
 Game::~Game() {
   window_->Destroy();
+  delete entity_manager_;
+  delete asset_manager_;
 }

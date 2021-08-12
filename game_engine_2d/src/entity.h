@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <typeinfo>
 
 #include "component.h"
 
@@ -13,12 +14,20 @@ class Entity {
  public:
   std::string name_;
 
+ private:
+  EntityManager& manager_;
+  bool is_active_;
+  std::vector<Component*> components_;
+  std::map<const std::type_info*, Component*> component_type_map_;
+
+ public:
   Entity(EntityManager& manager);
   Entity(EntityManager& manager, std::string name);
   void Update(float delta_time);
   void Render();
   void Destroy();
   bool IsActive() const;
+  void ListComponents();
 
   template<typename T, typename... TArgs>
   T& AddComponent(TArgs&&... args) {
@@ -36,11 +45,12 @@ class Entity {
     return static_cast<T*>(component_type_map_[&typeid(T)]);
   }
 
- private:
-  EntityManager& manager_;
-  bool is_active_;
-  std::vector<Component*> components_;
-  std::map<const std::type_info*, Component*> component_type_map_;
+  // return true if entity has component
+  template <typename T>
+  bool HasComponent() const {
+    return component_type_map_.count(&typeid(T));
+  }
+
 };
 
 #endif

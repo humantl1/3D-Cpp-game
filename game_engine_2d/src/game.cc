@@ -5,8 +5,10 @@
 #include "game.h"
 #include "constants.h"
 #include "components/transform_component.h"
+#include "components/sprite_component.h"
 
-EntityManager manager;
+EntityManager manager_;
+AssetManager* Game::asset_manager_ = new AssetManager(&manager_);
 SDL_Renderer* Game::renderer_;
 
 Game::Game() : ticksLastFrame_{0} {
@@ -50,14 +52,37 @@ void Game::Initialize(int width, int height) {
 
   LoadScene(0);
 
-
-
   is_running_ = true;
 }
 
 void Game::LoadScene(int scene_number) {
-  Entity& new_entity(manager.AddEntity("projectile"));
-  new_entity.AddComponent<TransformComponent>(0, 0, 20, 20, 32, 32, 1);
+  // Include new assets to asset manager map
+  asset_manager_->AddTexture("tank-image",
+    "./assets/images/tank-big-right.png");
+  asset_manager_->AddTexture("chopper-image",
+    "./assets/images/chopper-spritesheet.png");
+  asset_manager_->AddTexture("rock-image",
+    "./assets/images/rock-big-3.png");
+
+  // Include entities and their components
+  Entity& entity_tank(manager_.AddEntity("tank"));
+  entity_tank.AddComponent<TransformComponent>(0, 0, 20, 20, 32, 32, 1);
+  entity_tank.AddComponent<SpriteComponent>("tank-image");
+
+  Entity& entity_chopper(manager_.AddEntity("chopper"));
+  entity_chopper.AddComponent<TransformComponent>(
+    300, 300, -20, 0, 32, 32, 1);
+  entity_chopper.AddComponent<SpriteComponent>("chopper-image",
+    2, 90, true, false);
+
+  Entity& entity_rock(manager_.AddEntity("rock"));
+  entity_rock.AddComponent<TransformComponent>(250, 125, 0, 0, 32, 32, 1);
+  entity_rock.AddComponent<SpriteComponent>("rock-image");
+
+  manager_.ListEntities();
+  std::cout << std::boolalpha << "Rock has transform component? " <<
+    entity_rock.HasComponent<TransformComponent>() <<
+    std::noboolalpha << std::endl;
 }
 
 // Handle input
@@ -106,18 +131,18 @@ void Game::Update() {
   // set new ticks for the current frame to be used in the next pass
   ticksLastFrame_ = SDL_GetTicks();
 
-  manager.Update(delta_time);
+  manager_.Update(delta_time);
 }
 
 void Game::Render() {
   SDL_SetRenderDrawColor(renderer_, 21, 21, 21, 255);
   SDL_RenderClear(renderer_); // clear back buffer
 
-  if (manager.HasNoEntities()) {
+  if (manager_.HasNoEntities()) {
     return;
   }
 
-  manager.Render();
+  manager_.Render();
 
   // swap buffer
   SDL_RenderPresent(renderer_);

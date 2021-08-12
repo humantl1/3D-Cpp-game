@@ -1,0 +1,45 @@
+Tim Benton
+Full Stack ILC
+Summer 2021
+Week 6 summary
+
+What I did:
+
+This week I invested a majority of my time into the full stack portion of my
+ILC. Prior to this week I had never used JavaScript. By the end of it I have a
+fairly comprehensive working knowledge of it. I had planned to spend two weeks
+getting to this point, but I was having fun with it so I thought it best to use
+the motivation while I had it. I found that the JavaScript syntax was also very
+familiar, since the languages I know are all in the C family already. There were
+some slight variations with different for loops (for... in and for... of are two
+modern implementations). JavaScript is loosely typed, which was unusually to
+get used to. It is an upfront convenience that sacrifices some clarity and
+concreteness at runtime. All functions return data, which, as far as
+structuring goes, is convenient because the return can be implicit and
+essentially null if desired. There is a concept called "hoisting" which is
+unusual. Variables declarations "hoisted" to the beginning of the code even if
+explicitly declared later. I'm not sure exactly what implications this will
+have as I don't yet have enough experience with it.
+
+Not only did I learn Javascript, I finished about half of my main Javascript
+project. The project is to make a site that uses an api to get data from a
+server and display it on a page. I implemented the api portion which uses fetch
+to get the data. It ended up being difficult because the data I pulled had some
+data nested in arrays and some of this data was in the form of a url that I
+then needed to get additional data from. So I had to iterate through the
+initial JSON object, parsing it for urls that needed to have additional fetch
+calls. So recursive fetch calls on a JSON object. I actually had my
+implementation correct from the beginning, but I was using a for each loop,
+which doesn't work with recursive async fetch calls. What I needed was a for...
+of loop. I wrote my first stack overflow question, which is how a finally solved
+the problem.
+
+Because most of my time was spent on JavaScript, I implemented less than normal
+functionality for my game engine. I did set up a prototype asset manager which
+managers texture data. With this I am able to create more modular entities
+using my LoadScene method in my main game loop. With my transform and sprite
+components I can now load, render, and update game objects in a solid object-
+oriented way. My next step is to implement a prototype keyboard and mouse
+input to control these game objects. Once that is done I should have a solid
+grasp on how to impliment the complete entity-component system for my more
+complex 3d engine.

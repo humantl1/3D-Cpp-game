@@ -16,6 +16,7 @@ class EntityManager {
   Entity& AddEntity(std::string entity_name);
   std::vector<Entity*> GetEntities() const;
   unsigned int GetEntityCount();
+  void ListEntities();
  private:
   std::vector<Entity*> entities_;
 };

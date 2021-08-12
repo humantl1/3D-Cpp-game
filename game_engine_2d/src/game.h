@@ -6,7 +6,7 @@
 #include "../../ExternalLibs/SDL2/include/SDL_image.h"
 #include "../../ExternalLibs/SDL2/include/SDL_ttf.h"
 #include "../../ExternalLibs/SDL2/include/SDL_render.h"
-#elif VSCODELINUX
+#else
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
@@ -17,15 +17,15 @@
 #include "entity.h"
 #include "component.h"
 #include "entity_manager.h"
+#include "asset_manager.h"
+
+class AssetManager;
 
 class Game {
- private:
-  bool is_running_;
-  SDL_Window* window_;
  public:
   int ticksLastFrame_;
-  static SDL_Renderer *renderer_;
-
+  static SDL_Renderer* renderer_;
+  static AssetManager* asset_manager_;
   Game();
   ~Game();
   bool IsRunning() const;
@@ -35,6 +35,9 @@ class Game {
   void Update();
   void Render();
   void Destroy();
+ private:
+  bool is_running_;
+  SDL_Window* window_;
 };
 
 #endif

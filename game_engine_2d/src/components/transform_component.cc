@@ -1,6 +1,6 @@
 #if VSCODEWIN
 #include "../../ExternalLibs/SDL2/include/SDL.h"
-#elif VSCODELINUX
+#else
 #include <SDL2/SDL.h>
 #endif
 
@@ -26,13 +26,4 @@ void TransformComponent::Update(float delta_time) {
 }
 
 void TransformComponent::Render() {
-  SDL_Rect transformRectangle = {
-    (int)position_.x,
-    (int)position_.y,
-    width_,
-    height_
-  };
-
-  SDL_SetRenderDrawColor(Game::renderer_, 255, 255, 255, 255);
-  SDL_RenderFillRect(Game::renderer_, &transformRectangle);
 }

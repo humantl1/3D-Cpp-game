@@ -1,6 +1,7 @@
 #include "entity_manager.h"
 #include "entity.h"
 #include <cstdlib>
+#include <iostream>
 
 void EntityManager::ClearData() {
   for (auto& entity : entities_) {
@@ -37,3 +38,10 @@ unsigned int EntityManager::GetEntityCount() {
   return entities_.size();
 }
 
+void EntityManager::ListEntities() {
+  for (const auto& e: entities_) {
+    std::cout << "Entity Name: " << e->name_ << std::endl;
+    e->ListComponents();
+    std::cout << std::endl;
+  }
+}

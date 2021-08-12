@@ -1,0 +1,50 @@
+Tim Benton
+3D Game Architecture II & Full Stack Dev
+Summer, 2021
+Week 7 summary
+
+In brief:
+Game development: I learned through debugging that, when copied by value, C++
+initializes objects with the default constructor and then updates member
+variables, even if the object was initially created with an overloaded constructor.
+
+Full stack: I learned how to use Bootstrap, which is a framework for site layout
+that both simplifies and extends html and css functionality. To use it, the
+developer simply has to build html elements using a large selection of modular
+classes.
+
+What I did, problems I had, and questions:
+Instead of listing different concepts I attempted, I thought I'd give an
+example of the techniques I've been using to solve problems and debug while
+constructing my game code. Most of my time is spent debugging and restructing
+code, so this is most indicative of my time.
+
+I've been testing out concepts and techniques by making a small, 2d game engine
+concurrently with my 3d engine. This is because the 3d one is now so complex It
+is hard to be sure what is actually the source of a bug. On the other hand,
+I can try fundamental concepts in the 2d engine to make sure they are at least
+foundationally sound.
+
+This week I was implementing animations in my 2D engine by updating game objects
+with a series of sprite images. This is a simplified version of something I
+could use in my 3d engine. I created an animation class to store basic animation
+data. I added code to the existing sprite_component class that builds the
+animation sequence and plays the animation. I updated the game initialization
+to include an object that is animated.
+
+I ran into a bug when I tried to access individual frames of an animation from
+a map where they were stored with a string key. The animation object was
+perfectly accessible initially, but after I stored the animation in a map it
+came back as undefined. I've included the code where I test for the problem: the
+code illustrates how methodical I've had to become when testing in these larger
+programs (even the smaller 2d engine now requires a lot of care). You can see
+in the code how I have to consider object type, size, and memory location, among
+other things, as possible causes.
+
+In the end it turned out to be something simple: a default constructor was
+declared but not defined. Even this gave insight into how c++ executes "behind
+the scenes". Even though the object was initialized with an overloaded constuctor,
+when being copied to a map (this wasn't stored as a pointer), the compiler must
+re-initialize it with a default constructor and then update the member variables
+afterwards.
+

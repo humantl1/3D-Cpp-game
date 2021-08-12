@@ -8,7 +8,7 @@
 
 #ifdef VSCODEWIN
 #include "../../ExternalLibs/SDL2/include/SDL.h"
-#elif VSCODELINUX
+#else
 #include <SDL2/SDL.h>
 #endif
 

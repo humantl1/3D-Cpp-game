@@ -22,6 +22,8 @@ class Game {
   SDL_Window& window_;
 
   Game(SDL_Window& window, GLint buffer_height, GLint buffer_width);
+  void Initialize();
   void Run();
+  void LoadScene(int scene_number);
  private:
 };

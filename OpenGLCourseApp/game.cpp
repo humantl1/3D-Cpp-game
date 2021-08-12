@@ -2,17 +2,16 @@
 
 #include "game.h"
 
-Game::Game(SDL_Window& window, GLint buffer_height, GLint buffer_width) 
-  : buffer_height_{buffer_height}, buffer_width_{buffer_width},
-      window_{window} {
-  
-}
+Game::Game() : buffer_height_{kBufferStartHeight},
+               buffer_width_{kBufferStartWidth},
+               window_{nullptr} {}
 
-void Game::Run() {
+void Game::Initialize() { 
+  window_ = new SDL_Window(kBufferStartWidth, kBufferStartHeight);
+  window_->Initialize();
   renderer_.Initialize(buffer_width_, buffer_height_);
   renderer_.CreateObjects();
   renderer_.CreateShaders();
-
   // initial camera values
   camera_ = Camera(glm::vec3(0.0f, 0.0f, 0.0f),  // Camera start position
                    glm::vec3(0.0f, 1.0f, 0.0f),  // Camera start up direction
@@ -20,7 +19,10 @@ void Game::Run() {
                    0.0f,                         // Camera start pitch
                    5.00f,                        // Camera move speed
                    0.2f);                        // Camera turn speed
+}
 
+void Game::Run() {
+  this->Initialize();
   // Main loop
   while (!input_.GetExitPrompt()) {
     input_.ProcessInput();
@@ -54,6 +56,10 @@ void Game::Run() {
                          update_.GetDeltaTime());
 
     glUseProgram(0);
-    window_.SwapBuffer();
+    window_->SwapBuffer();
   }
+}
+
+Game::~Game() {
+  window_->Destroy();
 }

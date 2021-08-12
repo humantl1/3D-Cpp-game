@@ -86,6 +86,7 @@ int SDL_Window::Initialize() {
 void SDL_Window::Destroy() {
   SDL_DestroyWindow(window);  // free window memory
   SDL_Quit();                 // shut down all SDL subsystems
+  delete this;
 }
 
 SDL_Window::~SDL_Window() {}

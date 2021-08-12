@@ -19,11 +19,12 @@ class Game {
   InputManager input_;
   Update update_;
   Camera camera_;
-  SDL_Window& window_;
+  SDL_Window* window_;
 
-  Game(SDL_Window& window, GLint buffer_height, GLint buffer_width);
+  Game();
   void Initialize();
   void Run();
   void LoadScene(int scene_number);
+  ~Game();
  private:
 };

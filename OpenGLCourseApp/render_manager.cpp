@@ -410,7 +410,7 @@ void RenderManager::OmniShadowMapPass(PointLight* light, float delta_time) {
 void RenderManager::RenderPass(glm::mat4 viewMatrix, Camera& camera, 
                                float delta_time) {
 // 1.
-  glViewport(0, 0, 1366, 768);  // TODO: viewport function
+  glViewport(0, 0, kBufferStartWidth, kBufferStartHeight);  // TODO: viewport function
 
 // 2. Clear window
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);

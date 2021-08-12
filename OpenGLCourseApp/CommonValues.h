@@ -3,8 +3,8 @@
 
 #include "stb_image.h"
 
-const int kBufferStartWidth = 1366;
-const int kBufferStartHeight = 768;
+const int kBufferStartWidth = 1920;
+const int kBufferStartHeight = 1080;
 
 const float kToRadians = 3.14159265f / 180.0f;
 

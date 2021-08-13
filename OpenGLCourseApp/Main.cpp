@@ -17,11 +17,15 @@
 
 // SDL requires command line inputs be accomodated
 int main(int argc, char* argv[]) {
+  // Allow scripting (to be implemented):
   sol::state lua;
   lua.open_libraries(sol::lib::base);
+
+  // Run Game
   Game* game = new Game();
   game->Run();
   
+  // Exit Game
   delete game;
   return 0;
 }

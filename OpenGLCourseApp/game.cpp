@@ -27,6 +27,7 @@ void Game::Initialize() {
 
 void Game::Run() {
   this->Initialize();
+
   // Main loop
   while (!input_.GetExitPrompt()) {
     input_.ProcessInput();

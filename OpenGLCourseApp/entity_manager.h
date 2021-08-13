@@ -4,7 +4,6 @@
 #include <string>
 
 #include "entity.h"
-#include "component.cpp"
 
 class EntityManager {
  public:
@@ -14,7 +13,9 @@ class EntityManager {
   unsigned int GetEntityCount();
   void ListEntities();
   Entity& AddEntity(std::string entity_name);
+  std::vector<Entity*> GetEntities() const;
   void ClearData();
+
  private:
   std::vector<Entity*> entities_;
 };

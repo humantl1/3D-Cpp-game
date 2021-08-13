@@ -163,8 +163,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="asset_manager.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="DirectionalLight.cpp" />
+    <ClCompile Include="Entity.cpp" />
+    <ClCompile Include="entity_manager.cpp" />
     <ClCompile Include="game.cpp" />
     <ClCompile Include="input_manager.cpp" />
     <ClCompile Include="Light.cpp" />
@@ -181,6 +184,7 @@
     <ClCompile Include="Skybox.cpp" />
     <ClCompile Include="SpotLight.cpp" />
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="transform_component.cpp" />
     <ClCompile Include="Update.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
@@ -197,9 +201,13 @@
     <None Include="Shaders\skybox.vert" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="asset_manager.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CommonValues.h" />
+    <ClInclude Include="component.h" />
     <ClInclude Include="DirectionalLight.h" />
+    <ClInclude Include="entity.h" />
+    <ClInclude Include="entity_manager.h" />
     <ClInclude Include="game.h" />
     <ClInclude Include="input_manager.h" />
     <ClInclude Include="Light.h" />
@@ -215,6 +223,7 @@
     <ClInclude Include="Skybox.h" />
     <ClInclude Include="SpotLight.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="transform_component.h" />
     <ClInclude Include="Update.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>

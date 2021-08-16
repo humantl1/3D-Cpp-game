@@ -26,6 +26,7 @@ class Game {
   int ticksLastFrame_;
   static SDL_Renderer* renderer_;
   static AssetManager* asset_manager_;
+  static SDL_Event event_;
   Game();
   ~Game();
   bool IsRunning() const;

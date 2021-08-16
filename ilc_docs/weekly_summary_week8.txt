@@ -1,0 +1,43 @@
+Tim Benton
+3D Game Architecture II & Full Stack Dev
+Summer, 2021
+Week 8 summary
+
+Brief:
+  Full Stack: I began learning python as a back end language. I covered basics
+  such as data types, general syntax, loops comparisons, functions and scope. I
+  also began covering more intermediate and back-end specific concepts such as
+  *args and **kwargs, comprehensions, python virtual environments, api
+  requests, and editing json files.
+
+  Game dev: I further prototyped assets and animations in my 2d game engine, as
+  well as keyboard inputs, following the entity-component pattern. I further
+  restructured my 3d game along the entity-component patter, creating several
+  more manager classes, as well as beginning to re-design game objects as
+  entities.
+
+What I learned:
+  After primarily coding in C++ for most of the last year, I found Python to be
+  refreshingly intuitive. I can see how it was designed for readability, and in
+  contrast, how c++ has grown by having functionality tacked onto it. A
+  prominent computer scientist (I can't remember who), said they didn't think
+  you could truly understand programming until you knew more than one language.
+  Although, we started by learning Java, transitioned to c#, and I've been
+  working in c++, I didn't clearly understand that statement until this quarter.
+  Concurrently coding in html, css, javascript, python, and c++ has made me
+  clearly see how certain tasks lend themselves to different language paradigms.
+  In retrospect, I now see that during our final group project last quarter we
+  were forcing C# onto an api that would have worked much better had we simply
+  used python or javascript. By not using a more appropriate language we were
+  simply being inefficient.
+
+  This week in my game development I continued along the same lines as last
+  week, so my learning is a continued extension rather then a new insight.
+  Transferring more of my previous graphics engine code made me further see
+  how flexible the entity-component system is. I can add featurs by
+  designing these independent components without worrying much about adjacent
+  functionality. Towards the end of last quarter I was getting overwhelmed by
+  the growing structure of the code. Now that I am breaking things into discreet
+  components it is much more navigable, even though I am adding new features. I
+  find that architectural design like this is maybe the most interesting aspect
+  of what I've learned working on my game/engine so far.

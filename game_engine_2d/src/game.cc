@@ -6,10 +6,12 @@
 #include "constants.h"
 #include "components/transform_component.h"
 #include "components/sprite_component.h"
+#include "components/keyboard_component.h"
 
 EntityManager manager_;
 AssetManager* Game::asset_manager_ = new AssetManager(&manager_);
 SDL_Renderer* Game::renderer_;
+SDL_Event Game::event_;
 
 Game::Game() : ticksLastFrame_{0} {
   this->is_running_ = false;
@@ -71,9 +73,11 @@ void Game::LoadScene(int scene_number) {
 
   Entity& entity_chopper(manager_.AddEntity("chopper"));
   entity_chopper.AddComponent<TransformComponent>(
-    300, 300, -20, 0, 32, 32, 1);
+    300, 300, 0, 0, 32, 32, 1);
   entity_chopper.AddComponent<SpriteComponent>("chopper-image",
     2, 90, true, false);
+  entity_chopper.AddComponent<KeyboardComponent>("up", "right", "down", "left",
+  "space");
 
   Entity& entity_rock(manager_.AddEntity("rock"));
   entity_rock.AddComponent<TransformComponent>(250, 125, 0, 0, 32, 32, 1);
@@ -87,14 +91,11 @@ void Game::LoadScene(int scene_number) {
 
 // Handle input
 void Game::ProcessInput() {
-  // Create object to store events
-  SDL_Event event;       // A structure containg all SDL event structures
-
   // Queue events and pass to event object
-  SDL_PollEvent(&event); // Returns 1 if event pending. If there is a "pending event" it is stored in SDL_Event.
+  SDL_PollEvent(&event_); // Returns 1 if event pending. If there is a "pending event" it is stored in SDL_Event.
 
   // Handle event types
-  switch (event.type) {
+  switch (event_.type) {
     // Exit program if window 'x' button is pressed
     case SDL_QUIT: {
       is_running_ = false;
@@ -103,7 +104,7 @@ void Game::ProcessInput() {
 
     // Exit program if 'Escape' is pressed
     case SDL_KEYDOWN: {
-      if (event.key.keysym.sym == SDLK_ESCAPE) {
+      if (event_.key.keysym.sym == SDLK_ESCAPE) {
         is_running_ = false;
       }
     }

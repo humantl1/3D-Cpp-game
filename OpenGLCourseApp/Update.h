@@ -1,8 +1,11 @@
 #pragma once
+
+#include "entity_manager.h"
+
 class Update {
  public:
   Update();
-  void RunGameLoop();
+  void RunGameLoop(EntityManager& entity_manager);
   inline float GetDeltaTime() { return delta_time; }
 
   ~Update();

@@ -4,7 +4,10 @@
 
 Update::Update() : ticks_last_frame{0}, delta_time{0} {}
 
-void Update::RunGameLoop() { FixTime(); }
+void Update::RunGameLoop(EntityManager& entity_manager) { 
+  FixTime(); 
+  entity_manager.Update(delta_time);
+}
 
 void Update::FixTime() {
   // wait for 16.6 ms (1/60 sec) to ellapse

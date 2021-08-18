@@ -1,6 +1,7 @@
 #include "render_manager.h"
 
 #include "game.h"
+#include "transform_component.h"
 
 Game::Game() : buffer_height_{kBufferStartHeight},
                buffer_width_{kBufferStartWidth},
@@ -17,12 +18,20 @@ void Game::Initialize() {
   renderer_.CreateObjects();
   renderer_.CreateShaders();
   // initial camera values
-  camera_ = Camera(glm::vec3(0.0f, 0.0f, 0.0f),  // Camera start position
-                   glm::vec3(0.0f, 1.0f, 0.0f),  // Camera start up direction
-                   -90.0f,                       // Camera start yaw
-                   0.0f,                         // Camera start pitch
-                   5.00f,                        // Camera move speed
-                   0.2f);                        // Camera turn speed
+  camera_ = Camera(glm::vec3(0.0f, 1.0f, 0.0f),  // Camera start position
+                   glm::vec3(0.0f, 10.0f, 0.0f));  // Camera start up direction
+}
+
+void Game::LoadScene(int scene_number) {
+  Entity& camera_entity(entity_manager_->AddEntity("camera"));
+  camera_entity.AddComponent<TransformComponent>(glm::vec3(0.0f, 0.0f, 0.0f),
+                                          glm::vec3(0.0f, 0.0f, 0.0f),
+                                          -90.0f,
+                                          0.0f,
+                                          0.0f,
+                                          1.0f,
+                                          5.0f,
+                                          0.2f);
 }
 
 void Game::Run() {
@@ -31,7 +40,7 @@ void Game::Run() {
   // Main loop
   while (!input_.GetExitPrompt()) {
     input_.ProcessInput();
-    update_.RunGameLoop();
+    update_.RunGameLoop(*entity_manager_);
 
     //	// Get + handle user input events
     //	glfwPollEvents();

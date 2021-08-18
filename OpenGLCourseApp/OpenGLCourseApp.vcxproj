@@ -170,7 +170,7 @@
     <ClCompile Include="entity_manager.cpp" />
     <ClCompile Include="game.cpp" />
     <ClCompile Include="input_manager.cpp" />
-    <ClCompile Include="KeyboardComponent.cpp" />
+    <ClCompile Include="input_component.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Material.cpp" />
@@ -204,14 +204,16 @@
   <ItemGroup>
     <ClInclude Include="asset_manager.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="command.h" />
     <ClInclude Include="CommonValues.h" />
     <ClInclude Include="component.h" />
     <ClInclude Include="DirectionalLight.h" />
     <ClInclude Include="entity.h" />
     <ClInclude Include="entity_manager.h" />
+    <ClInclude Include="flashlight_command.h" />
     <ClInclude Include="game.h" />
     <ClInclude Include="input_manager.h" />
-    <ClInclude Include="keyboard_component.h" />
+    <ClInclude Include="input_component.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="Mesh.h" />

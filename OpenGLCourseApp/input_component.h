@@ -1,11 +1,9 @@
 #pragma once
 
-#include <string>
-
-#include "game.h"
-#include "entity_manager.h"
 #include "transform_component.h"
 
-class InputComponent {
-
+class InputComponent : public Component {
+ public:
+  ~InputComponent() {}
+  bool Flashlight();
 };

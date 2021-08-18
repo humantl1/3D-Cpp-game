@@ -26,6 +26,7 @@ void InputManager::ProcessInput() {
       default:
         break;
       }
+      break;
 
     default: 
       break;

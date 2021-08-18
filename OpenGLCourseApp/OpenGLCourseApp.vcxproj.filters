@@ -87,7 +87,7 @@
     <ClCompile Include="transform_component.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="KeyboardComponent.cpp">
+    <ClCompile Include="input_component.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -179,7 +179,13 @@
     <ClInclude Include="component.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="keyboard_component.h">
+    <ClInclude Include="input_component.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="command.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flashlight_command.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

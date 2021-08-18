@@ -3,28 +3,32 @@
 #include "input_manager.h"
 #include "SDL_Window.h"
 
-InputManager::InputManager() : exit_prompt{false} {}
+InputManager::InputManager() : exit_prompt_{false} {}
 
 void InputManager::ProcessInput() {
-  SDL_Event event;
+  SDL_PollEvent(&event_);
 
-  SDL_PollEvent(&event);
-
-  switch (event.type) {
-    case SDL_QUIT: {
-      exit_prompt = true;
+  switch (event_.type) {
+    // Window Event
+    case SDL_QUIT: 
+      exit_prompt_ = true;
       break;
-    }
-    case SDL_KEYDOWN: {
-      if (event.key.keysym.sym == SDLK_ESCAPE ||
-          event.key.keysym.sym == SDLK_q) {
-        exit_prompt = true;
+    
+    // KeyPress Event
+    case SDL_KEYDOWN: 
+      switch (event_.key.keysym.sym) {
+      case SDLK_ESCAPE:
+        exit_prompt_ = true;
+        break;
+      case SDLK_q:
+        exit_prompt_ = true;
+        break;
+      default:
+        break;
       }
+
+    default: 
       break;
-    }
-    default: {
-      break;
-    }
   }
 }
 

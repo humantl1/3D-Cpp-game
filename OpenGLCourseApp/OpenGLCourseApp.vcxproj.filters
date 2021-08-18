@@ -87,6 +87,9 @@
     <ClCompile Include="transform_component.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="KeyboardComponent.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="glew32.dll" />
@@ -174,6 +177,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="component.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="keyboard_component.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

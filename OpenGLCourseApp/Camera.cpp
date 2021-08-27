@@ -4,8 +4,22 @@ Camera::Camera() {}
 
 Camera::Camera(glm::vec3 startPosition, glm::vec3 startUp)
     : position {startPosition},
-      worldUp {glm::normalize(startUp)},
-      front  {glm::normalize(glm::vec3(0.0f, 0.0f, -1.0f))} {}
+      worldUp {startUp},
+      front  {glm::vec3(0.0f, 0.0f, -1.0f)} {}
+
+void Camera::Initialize() {
+	transform_ = owner_->GetComponent<TransformComponent>();
+	right = glm::vec3(1.0f, 0.0f, 0.0f);
+	up = glm::normalize(glm::cross(right, front));
+}
+
+void Camera::Update(float delta_time)
+{
+	position = transform_->position_;
+	front = transform_->rotation_;
+	right = glm::normalize(glm::cross(front, worldUp));
+	up = glm::normalize(glm::cross(right, front));
+}
 
 //void Camera::keyControl(bool* keys, GLfloat deltaTime)
 //{	
@@ -53,8 +67,6 @@ Camera::Camera(glm::vec3 startPosition, glm::vec3 startUp)
 
 glm::mat4 Camera::calculateViewMatrix()
 {
-  right = glm::normalize(glm::cross(front, worldUp));
-  up = glm::normalize(glm::cross(right, front));
 	return  glm::lookAt(position, position + front, up);
 }
 
@@ -67,20 +79,4 @@ glm::vec3 Camera::getCameraPosition()
 glm::vec3 Camera::getCameraDirection()
 {
 	return glm::normalize(front);
-}
-
-//void Camera::update()
-//{
-//	front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-//	front.y = sin(glm::radians(pitch));
-//	front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-//	front = glm::normalize(front);
-//
-//	right = glm::normalize(glm::cross(front, worldUp));
-//	up = glm::normalize(glm::cross(right, front));
-//}
-
-Camera::~Camera()
-{
-
 }

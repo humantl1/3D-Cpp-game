@@ -30,6 +30,7 @@ void EntityManager::ListEntities() {
   }
 }
 
+// TODO: turn the return into a unique pointer
 Entity& EntityManager::AddEntity(std::string entity_name) {
   Entity* entity = new Entity(*this, entity_name);
   entities_.emplace_back(entity);

@@ -20,7 +20,7 @@ class Game {
   RenderManager renderer_;
   InputManager input_;
   Update update_;
-  Camera camera_;
+  Entity* camera_;
   SDL_Window* window_;
   EntityManager* entity_manager_;
   AssetManager* asset_manager_;

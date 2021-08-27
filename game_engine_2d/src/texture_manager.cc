@@ -3,6 +3,8 @@
 SDL_Texture* TextureManager::LoadTexture(const char* file_path) {
   SDL_Surface* surface = IMG_Load(file_path);
   SDL_Texture* texture = SDL_CreateTextureFromSurface(Game::renderer_, surface);
+  SDL_FreeSurface(surface);
+  return texture
 }
 
 void TextureManager::Draw(SDL_Texture* texture, SDL_Rect source_rectangle,

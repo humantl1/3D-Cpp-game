@@ -6,11 +6,17 @@
 
 #include <GLFW\glfw3.h>
 
-class Camera
-{
+#include "entity_manager.h"
+#include "component.h"
+#include "transform_component.h"
+
+class Camera : public Component {
 public:
 	Camera();
 	Camera(glm::vec3 startPosition, glm::vec3 startUp);
+	void Initialize() override;
+  void Update(float delta_time) override;
+	void Render() override {}
 
 	//void keyControl(bool* keys, GLfloat deltaTime);
 	//void mouseControl(GLfloat xChange, GLfloat yChange);
@@ -20,7 +26,7 @@ public:
 
 	glm::mat4 calculateViewMatrix();
 
-	~Camera();
+	TransformComponent* transform_;
 private:
 	glm::vec3 position;
 	glm::vec3 front;

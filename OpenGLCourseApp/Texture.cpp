@@ -1,4 +1,5 @@
 #include "Texture.h"
+#include <SDL_image.h>
 
 Texture::Texture()
 {
@@ -20,13 +21,22 @@ Texture::Texture(const char* fileLoc)
 
 bool Texture::LoadTexture()
 {
-	unsigned char* texData = stbi_load(fileLocation, &width, &height, &bitDepth, 0);
+	//unsigned char* texData = stbi_load(fileLocation, &width, &height, &bitDepth, 0);
 
-	if (!texData)
-	{
+	//if (!texData)
+	//{
+	//	printf("Failed to find: %s\n", fileLocation);
+	//	return false;
+	//}
+
+	SDL_Surface* surface = IMG_Load(fileLocation); 
+	if (!surface) {
 		printf("Failed to find: %s\n", fileLocation);
 		return false;
 	}
+
+	width= surface->w;
+	height= surface->h;
 
 	glGenTextures(1, &textureID);
 	glBindTexture(GL_TEXTURE_2D, textureID);
@@ -36,24 +46,35 @@ bool Texture::LoadTexture()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	// set mipmap minifying function to linear
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);	// set mipmap magnifying function to linear
 	
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, texData);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, texData);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, surface->pixels);
 	glGenerateMipmap(GL_TEXTURE_2D);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	stbi_image_free(texData);
+	//stbi_image_free(texData);
+	SDL_FreeSurface(surface);
 
 	return true; 
 }
 
 bool Texture::LoadTextureA()
 {
-	unsigned char* texData = stbi_load(fileLocation, &width, &height, &bitDepth, 0);
-	if (!texData)
-	{
+	//unsigned char* texData = stbi_load(fileLocation, &width, &height, &bitDepth, 0);
+	//if (!texData)
+	//{
+	//	printf("Failed to find: %s\n", fileLocation);
+	//	return false;
+	//}
+
+	SDL_Surface* surface = IMG_Load(fileLocation); 
+	if (!surface) {
 		printf("Failed to find: %s\n", fileLocation);
 		return false;
 	}
+
+	width= surface->w;
+	height= surface->h;
 
 	glGenTextures(1, &textureID);
 	glBindTexture(GL_TEXTURE_2D, textureID);
@@ -63,12 +84,13 @@ bool Texture::LoadTextureA()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texData);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, surface->pixels);
 	glGenerateMipmap(GL_TEXTURE_2D);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	stbi_image_free(texData);
+	//stbi_image_free(texData);
+	SDL_FreeSurface(surface);
 
 	return true; 
 }

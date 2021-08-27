@@ -7,7 +7,8 @@ Game::Game() : buffer_height_{kBufferStartHeight},
                buffer_width_{kBufferStartWidth},
                window_{nullptr},
                entity_manager_{nullptr},
-               asset_manager_ {nullptr} {}
+               asset_manager_ {nullptr},
+               camera_ {nullptr} {}
 
 void Game::Initialize() { 
   window_ = new SDL_Window(kBufferStartWidth, kBufferStartHeight);
@@ -18,13 +19,14 @@ void Game::Initialize() {
   renderer_.CreateObjects();
   renderer_.CreateShaders();
   // initial camera values
-  camera_ = Camera(glm::vec3(0.0f, 1.0f, 0.0f),  // Camera start position
-                   glm::vec3(0.0f, 10.0f, 0.0f));  // Camera start up direction
+  //camera_ = Camera(glm::vec3(0.0f, 1.0f, 0.0f),  // Camera start position
+  //                 glm::vec3(0.0f, 10.0f, 0.0f));  // Camera start up direction
+  LoadScene(0);
 }
 
 void Game::LoadScene(int scene_number) {
-  Entity& camera_entity(entity_manager_->AddEntity("camera"));
-  camera_entity.AddComponent<TransformComponent>(glm::vec3(0.0f, 0.0f, 0.0f),
+  camera_ = &entity_manager_->AddEntity("camera");
+  camera_->AddComponent<TransformComponent>(glm::vec3(0.0f, 0.0f, 0.0f),
                                           glm::vec3(0.0f, 0.0f, 0.0f),
                                           -90.0f,
                                           0.0f,
@@ -32,6 +34,8 @@ void Game::LoadScene(int scene_number) {
                                           1.0f,
                                           5.0f,
                                           0.2f);
+  camera_->AddComponent<Camera>(glm::vec3(0.0f, 1.0f, 0.0f),  // Camera start position
+                                     glm::vec3(0.0f, 10.0f, 0.0f));  // Camera start up direction);
 }
 
 void Game::Run() {
@@ -66,9 +70,11 @@ void Game::Run() {
     }
 
     // Draw to screen
-    renderer_.RenderPass(camera_.calculateViewMatrix(), camera_,
+    renderer_.RenderPass(camera_->GetComponent<Camera>()->calculateViewMatrix(),
+                         *camera_->GetComponent<Camera>(),
                          update_.GetDeltaTime());
 
+    
     glUseProgram(0);
     window_->SwapBuffer();
   }

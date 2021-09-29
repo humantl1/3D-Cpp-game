@@ -17,7 +17,7 @@
             "cStandard": "c17",
             "cppStandard": "c++17",
             "intelliSenseMode": "windows-msvc-x64",
-            "compileCommands": "/mnt/hgfs/Dev/game_course/game_engine_2d/compile_commands.json"
+            // "compileCommands": ""
         },
         {
             "name": "Linux",

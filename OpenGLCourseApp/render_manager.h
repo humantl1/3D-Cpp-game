@@ -5,9 +5,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "Texture.h"
+#include "texture_manager.h"
 #include "Material.h"
-#include "Model.h"
+#include "model_manager.h"
 #include "DirectionalLight.h"
 #include "PointLight.h"
 #include "SpotLight.h"
@@ -29,9 +29,9 @@ class RenderManager {
   Material shinyMaterial;
   Material dullMaterial;
 
-  Model xwing;
-  Model asteroid;
-  Model asteroid2;
+  ModelManager xwing;
+  ModelManager asteroid;
+  ModelManager asteroid2;
 
   DirectionalLight mainLight;
   PointLight pointLights[kMaxPointLights];

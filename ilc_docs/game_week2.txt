@@ -1,0 +1,18 @@
+Tim Benton
+3D Game Architecture II
+Summer, 2021
+Weekly Summaries
+
+Week 2 : Game Loop Prototype
+- Implement make and compile_commands.json to improve development control and functionality
+- Research safe memory allocation and deletion
+  - implement unique pointers to avoid memory leaks
+- Implement SDL window functionality
+  - Transfer window display handling from GLFW to SDL
+  - Transition window code
+- Research game loop implementations
+  - In Linux, prototype basic game:
+    - initialization : initialize window and SDL functionality
+    - input : receive and record input via SDL
+    - render functionality : render 2d graphics via SDL
+    - time step : fix delta time to specified frames per second

@@ -1,0 +1,44 @@
+Tim Benton
+3D Game Architecture II & Full Stack Dev
+Summer, 2021
+Week 10 summary
+
+Brief:
+Full Stack: I began learning React.js this week. It is a fairly complicated
+Javascript library, as far as front-end development goes. So, I really only
+scratched the surface of its capabilites. I covered its syntax, use cases,
+and some functionality, including components, properties, events, and API
+requests. I wrote a small app to query an API database, return the data in JSON
+format, and dynamically display the results.
+
+Game dev: I finished converting camera functionality into a component. This lays
+the majority of the groundwork for attaching a camera component to any game
+object to render the scene from that position/perspective. I moved the initial
+texture surface loading responsibilities to SDL. I had previously used Assimp,
+and switched this to SDL to maintain consistancy. I began implementing an asset
+manager as an interface for loading/getting textures, models, and materials.
+This way the that functionality can change internally while calls to use the
+functionality can remain unneffected.
+
+What I learned:
+Managing a larger project like the 3D game engine is teaching me that a large
+part of a software project is keeping track of changes and possible side effects
+of those changes. The usefullness of Git functionality to track these and
+maintain a permanent backlog of development becomes obviously apparent. From
+this, encapsulation's usefullness is also more obvious. In a small school style
+assignment it is pretty easy to flip through a few pages of code and just visual
+track what is effecting what. In my (still relatively small) project, I can't
+just flip through the 20+ classes and see what is happening. More and more I
+need to be carefull to encapsulate functionality just so that I can work on any
+given system without breaking all the others. I also read up on entity-component
+model efficiency some more. I learned that at a larger scale my naive
+implementation of it will have poor performance due to the need to iterate
+through every object to check which components need to be updated. A more
+efficient implementation is to add each instance of a component to an
+array-like that is then iterated through to only update those components. Each
+component has an iterable array like this, so that there isn't any uneccesary
+checks. This system also has the advantage of spatial locality, in that like-
+components can be stored contiguously, so that iterating through these component
+lists is cache-efficient. There are also more complex methods that stagger
+related components in memory (e.g. tranforms and meshes) for even better spacial
+locality.

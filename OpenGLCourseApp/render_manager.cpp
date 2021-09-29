@@ -17,13 +17,13 @@ void RenderManager::Initialize(GLfloat buffer_width, GLfloat buffer_height) {
 
   // TODO: models should be components of objects
   // Load Models
-  xwing = Model();
+  xwing = ModelManager();
   xwing.LoadModel("Models/x-wing.obj");
 
-  asteroid = Model();
+  asteroid = ModelManager();
   asteroid.LoadModel("Models/10464_Asteroid_v1_Iterations-2.obj");
 
-  asteroid2 = Model();
+  asteroid2 = ModelManager();
   asteroid2.LoadModel("Models/Asteroid_1_LOW_MODEL_.obj");
 
   // TODO: handle lights in classes

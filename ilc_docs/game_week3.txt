@@ -1,0 +1,20 @@
+Tim Benton
+3D Game Architecture II
+Summer, 2021
+Weekly Summaries
+
+Week 3 : Game Loop Implementation
+- Move core functionality to discreet classes
+  -  Input
+  -  SDL_window
+  -  Update
+- Fix time step in 3D game code
+  - Implement cpu independent Delta Time
+  - Decouple desired frames per second from functionality via a separate "constant" class
+  - Sync rendering buffer output with Delta Time
+- Begin more robust SDL input implementation, replacing ad hoc GLFW input functionality
+  - Begin attempt to abstract input functionality from specific input implementation
+    - i.e. classes that receive input are uneffected by changes in input implementation
+    - This will require significant engineering, as an event system would be the most robust
+        way to achieve this
+- Begin researching potential event system architectures
